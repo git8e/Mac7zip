@@ -1,0 +1,146 @@
+/* Menu / toolbar */
+"Open" = "打开";
+"Open…" = "打开…";
+"Add" = "添加";
+"Up" = "向上";
+"Extract" = "解压";
+"Test" = "测试";
+"Delete" = "删除";
+"Info" = "信息";
+"OK" = "确定";
+"Cancel" = "取消";
+"Save" = "保存";
+"Select" = "选择";
+"Browse…" = "浏览…";
+"Password" = "密码";
+
+/* Empty state */
+"Open an archive, or drop one onto the window" = "打开一个压缩包，或把它拖到窗口里";
+"Open Archive" = "打开压缩包";
+"New Archive" = "新建压缩包";
+"No archive open" = "未打开压缩包";
+
+/* Status / progress */
+"Ready" = "就绪";
+"Opening %@…" = "正在打开 %@…";
+"Opening…" = "正在打开…";
+"Extracting…" = "正在解压…";
+"Testing…" = "正在测试…";
+"Compressing…" = "正在压缩…";
+"Deleting…" = "正在删除…";
+"Cancelled" = "已取消";
+"%d files, %d folders" = "%d 个文件，%d 个文件夹";
+"%d selected (%d files, %@)" = "已选择 %d 项（%d 个文件，%@）";
+"Extracted to %@" = "已解压到 %@";
+"Created %@" = "已创建 %@";
+"Deleted %d items" = "已删除 %d 个项目";
+"7-Zip engine not found" = "未找到 7-Zip 引擎";
+
+/* Alerts */
+"Error" = "错误";
+"Notice" = "提示";
+"Test Result" = "测试结果";
+"Everything is Ok" = "Everything is Ok";
+"Everything is Ok\n\nFiles: %d\nSize: %@" = "Everything is Ok\n\n文件: %d\n大小: %@";
+"Please select the file or folder to extract first." = "请先在列表中选中要解压的文件或文件夹。";
+"Please select the items to delete first." = "请先选中要删除的项目。";
+"Delete %d selected items from the archive? This modifies the archive." = "确定要从压缩包中删除选中的 %d 个项目吗？此操作会修改压缩包。";
+
+/* Password */
+"Enter Password" = "输入密码";
+"The archive \"%@\" is encrypted. Enter the password." = "压缩包“%@”已加密，请输入密码。";
+"The archive is encrypted. Enter the password." = "压缩包已加密，请输入密码。";
+
+/* Details list column headers */
+"Folder" = "文件夹";
+"Name" = "名称";
+"Size" = "大小";
+"Packed" = "压缩后";
+"Modified" = "修改时间";
+"Attributes" = "属性";
+"Method" = "方法";
+"Encrypted" = "加密";
+
+/* Extract sheet */
+"Extract to:" = "解压到:";
+"Destination folder" = "目标文件夹";
+"Path mode:" = "路径模式:";
+"Full paths" = "完整路径";
+"No paths" = "无路径";
+"Overwrite mode:" = "覆盖模式:";
+"Use password" = "使用密码";
+"Will extract the selected %d items." = "将解压选中的 %d 个项目。";
+"Will extract the entire contents of the archive." = "将解压压缩包中的全部内容。";
+
+/* Overwrite modes */
+"Overwrite existing files" = "覆盖现有文件";
+"Skip existing files" = "跳过现有文件";
+"Auto rename new files" = "自动重命名新文件";
+"Auto rename existing files" = "自动重命名现有文件";
+
+/* Add sheet */
+"Add to Archive" = "添加到压缩包";
+"Add to Archive…" = "添加…";
+"Archive:" = "压缩包:";
+"Format:" = "格式:";
+"Level:" = "级别:";
+"Solid compression (better ratio, slightly slower for single files)" = "固实压缩（提高压缩率，解压单个文件稍慢）";
+"Split to volumes:" = "分卷大小:";
+"e.g. 100m, leave empty for a single file" = "例如 100m，留空表示不分卷";
+"Encrypt file names" = "加密文件名";
+"Sources (%d)" = "来源（%d 项）";
+
+/* Compression levels */
+"Store" = "仅存储";
+"Fastest" = "最快";
+"Fast" = "快速";
+"Normal" = "标准";
+"Maximum" = "最大";
+"Ultra" = "极限";
+
+/* Info sheet */
+"Archive Information" = "压缩包信息";
+"Path" = "路径";
+"Unknown" = "未知";
+"Solid" = "固实";
+"Yes" = "是";
+"No" = "否";
+"Physical size" = "物理大小";
+"Headers size" = "头部大小";
+"Blocks" = "数据块";
+"Files" = "文件";
+"Folders" = "文件夹";
+"Unpacked size" = "解压后大小";
+
+/* Menus */
+"Operations" = "操作";
+"Extract All…" = "全部解压…";
+"Extract Selected…" = "解压选中项…";
+"Go" = "前往";
+"Go Up One Level" = "向上一级";
+"Root" = "根目录";
+"Language" = "语言";
+"System" = "跟随系统";
+"Associate" = "关联";
+"Open Archives with Mac7Zip by Default" = "用 Mac7Zip 默认打开压缩包";
+"Restore System Default Handlers" = "恢复系统默认打开方式";
+"About Mac7Zip" = "关于 Mac7Zip";
+"Mac7Zip — a macOS GUI built on the official 7-Zip engine.\n7-Zip © Igor Pavlov." = "Mac7Zip — 基于官方 7-Zip 引擎的 macOS 图形界面。\n7-Zip © Igor Pavlov.";
+
+/* Association results */
+"Mac7Zip is now the default opener" = "Mac7Zip 现为默认打开方式";
+"Double-clicking %d archive types will now open them in Mac7Zip instead of extracting them." = "双击 %d 种压缩包类型时，现在将直接用 Mac7Zip 打开，而不会自动解压。";
+"Could not update associations" = "无法更新文件关联";
+"Launch Services refused the change. Try again from the Associations menu." = "系统拒绝了该更改。请从“关联”菜单重试。";
+"System default handlers restored" = "已恢复系统默认打开方式";
+"%d archive types were handed back to the system default programs." = "已将 %d 种压缩包类型交还给系统默认程序。";
+
+/* Engine errors */
+"The bundled 7-Zip engine (7zz) was not found. Please reinstall the app." = "找不到内建的 7-Zip 引擎（7zz）。请重新安装应用。";
+"Failed to launch the 7-Zip engine: %@" = "无法启动 7-Zip 引擎：%@";
+"This archive is encrypted. A password is required." = "该压缩包已加密，需要输入密码。";
+"Wrong password, or the archive is corrupted." = "密码错误，或压缩包已损坏。";
+"Operation cancelled." = "操作已取消。";
+"Cannot open the archive. The file may not be an archive or the format is unsupported." = "无法打开压缩包。文件可能不是压缩包或格式不受支持。";
+"7-Zip returned an error (code %d)." = "7-Zip 返回错误（代码 %d）。";
+"The archive has problems." = "压缩包存在问题。";

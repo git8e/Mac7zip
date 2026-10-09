@@ -1,0 +1,111 @@
+# Mac7Zip
+
+A native macOS GUI for 7-Zip — a faithful remake of the **Windows 7-Zip File Manager**, powered by the **official 7-Zip engine** (`7zz`). Double-click an archive and browse it, extract a single file or a folder, create or test archives — all with the familiar 7-Zip layout.
+
+[简体中文说明](README.zh-CN.md)
+
+> **Download** the latest build from the [Releases](https://github.com/git8e/Mac7Zip/releases) page (DMG).
+
+## Why
+
+7-Zip on macOS only ships the command line tool (`7zz`):
+
+- you cannot preview the file tree inside an archive;
+- you cannot extract just one file or folder;
+- create / add / test all require typing manual arguments.
+
+Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip File Manager: menu bar, toolbar (Add / Extract / Test / Delete / Info), path bar, **folder tree on the left + details list on the right**, and a status bar.
+
+## Features
+
+- **Open / browse archives**: 7z, zip, rar, tar, gz, bz2, xz, iso, wim, cab, rpm, deb, jar… (anything the 7-Zip engine supports)
+- **File tree preview**: folder tree on the left, a details list with the familiar columns (Name / Size / Packed / Modified / Attributes / CRC / Method / Encrypted) on the right; double-click to enter a folder
+- **Extract selected items only**: pick files or folders, recursively handled, with redundant "parent + child" selections automatically collapsed
+- **New archive / add to archive**: format, compression level, solid mode, password, file-name encryption, split volumes
+- **Test integrity** and **delete items inside an archive**
+- Drag & drop to open, Finder "Open With", opening archives from the command line
+- Operation progress with cancel
+
+## File association
+
+By default macOS extracts an archive when you double-click it. With Mac7Zip you can make archive files **open in the app instead** — and it never steals the association silently:
+
+1. Open Mac7Zip, then use the menu **Associate ▸ Open Archives with Mac7Zip by Default**.
+2. Double-clicking a 7z/zip/rar/… file now opens it in Mac7Zip for browsing.
+
+Use **Associate ▸ Restore System Default Handlers** at any time to hand the associations back to macOS.
+
+## Languages
+
+The app follows your system language by default (English / Simplified Chinese), and you can switch manually at any time from the **Language** menu — the change applies immediately.
+
+## Install
+
+- macOS 13 or later (Apple Silicon and Intel, universal `7zz` engine bundled).
+- Download the DMG from [Releases](https://github.com/git8e/Mac7Zip/releases), open it and drag **Mac7Zip.app** into *Applications*.
+- The app is ad-hoc signed for local use. The first launch may require *right-click ▸ Open* on the app.
+
+## Build from source
+
+Requires macOS 13+ and the Xcode command line tools (Swift 6).
+
+```bash
+make build   # compile
+make run     # run from source (uses Vendor/7zz)
+make app     # assemble build/Mac7Zip.app
+make dmg     # assemble + create build/Mac7Zip-1.0.dmg
+open build/Mac7Zip.app
+```
+
+If `Vendor/7zz` is missing:
+
+```bash
+make engine  # downloads the official engine (Scripts/fetch_engine.sh)
+```
+
+## Architecture
+
+```
+Sources/Mac7Zip/
+  Engine/     Wraps the official 7zz: process calls, -slt parsing, progress, password detection
+  Models/     Data models and the directory tree builder
+  State/      AppModel: navigation, selection, extract/compress/test/delete
+  Views/      SwiftUI shell + NSOutlineView / NSTableView bridges
+Vendor/7zz      Official 7-Zip engine (universal binary)
+Resources/      App icon + en.lproj / zh-Hans.lproj localization tables
+Scripts/        Build, packaging and engine download scripts
+Tests/          Engine and view-model tests (Swift Testing)
+```
+
+Key implementation notes:
+
+- **No rewrites of compression algorithms**: every compress / extract / test is delegated to `7zz`, so format support always follows the official engine.
+- **File tree**: `7zz l -slt` (machine readable) output is parsed and turned into a directory tree.
+- **Progress**: the `-bb1` "one line per file" output drives the progress bar and current-file label.
+- **Encrypted archives never hang**: the child process stdin is always wired to `/dev/null`; "password required / wrong password" is detected from the output text and a password sheet is shown to retry.
+
+## Tests
+
+```bash
+swift test
+```
+
+Covers: engine location, create / list / **extract a single file** / test, encrypted-archive password handling, `-slt` parsing, and the navigation/selection logic that drives the UI.
+
+## Diagnostics (no GUI required)
+
+```bash
+./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --check-engine
+./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --list /path/to/archive.7z
+./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --strings          # localized strings
+```
+
+## Try it
+
+`Samples/演示.7z` is a sample archive (Chinese names, nested folders) you can use to try the file tree and single-item extraction.
+
+## License
+
+- 7-Zip engine (`Vendor/7zz`): © Igor Pavlov, licensed under the GNU LGPL — see `THIRD_PARTY/7-Zip-License.txt`.
+- App icon: the official 7-Zip icon, vectorised for Wikimedia Commons — LGPL — see `THIRD_PARTY/7-Zip-Icon-License.txt`.
+- Mac7Zip itself: source code in this repository.

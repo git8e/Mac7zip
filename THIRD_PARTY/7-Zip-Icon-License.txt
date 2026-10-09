@@ -1,0 +1,17 @@
+7-Zip Icon License
+==================
+
+The application icon included with Mac7Zip (`Resources/AppIcon.icns`) is built
+from the official 7-Zip program icon.
+
+7-Zip is Copyright (c) 1999-2026 Igor Pavlov and is distributed under the GNU
+Lesser General Public License (see `7-Zip-License.txt`).
+
+The vector artwork used as the source was obtained from Wikimedia Commons:
+
+  File: 7ziplogo.svg  — "The logo of 7-Zip (program icon of the file archiver
+  7-Zip)", originally published at 7-zip.org/logos.html, vectorized by
+  CryptWizard et al., licensed under the GNU LGPL.
+
+The generated `AppIcon.icns` is therefore also distributed under the LGPL, as
+part of the 7-Zip project's assets.
