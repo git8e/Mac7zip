@@ -1,5 +1,8 @@
 .PHONY: build app dmg run clean engine icon
 
+# Single source of truth for the version shown in the DMG file name.
+VERSION := $(shell /usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" Scripts/Info.plist)
+
 # Compile the Swift package (debug).
 build:
 	swift build
@@ -10,7 +13,7 @@ app:
 
 # Assemble the .app and wrap it in a distributable DMG.
 dmg: app
-	Scripts/make_dmg.sh 1.1.0
+	Scripts/make_dmg.sh $(VERSION)
 
 # Run from source (uses Vendor/7zz).
 run:

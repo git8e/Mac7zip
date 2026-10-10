@@ -1,0 +1,131 @@
+name: Update 7-Zip engine
+
+# Checks the upstream 7-Zip releases (ip7z/7zip) for a newer macOS `7zz`,
+# and when one appears: bundles it, bumps the Mac7zip patch version, builds
+# the DMG and publishes a GitHub Release. Run manually from the Actions tab
+# or automatically every Monday.
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-engine
+  cancel-in-progress: false
+
+jobs:
+  update-engine:
+    runs-on: macos-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select the newest Xcode
+        run: |
+          set -euo pipefail
+          newest="$(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V | tail -1 || true)"
+          if [ -n "$newest" ]; then sudo xcode-select -s "$newest"; fi
+          swift --version
+
+      - name: Find the latest upstream 7-Zip release
+        id: upstream
+        run: |
+          set -euo pipefail
+          json="$(curl -fsSL https://api.github.com/repos/ip7z/7zip/releases/latest)"
+          tag="$(printf '%s' "$json" | python3 -c 'import sys,json; print(json.load(sys.stdin)["tag_name"])')"
+          code="$(printf '%s' "$tag" | tr -d '.')"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "Upstream engine: $tag"
+
+      - name: Read the bundled engine version
+        id: current
+        run: |
+          set -euo pipefail
+          version="$(./Vendor/7zz 2>&1 | sed -nE 's/^7-Zip \(z\) ([0-9]+\.[0-9]+).*/\1/p' | head -1)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Bundled engine: $version"
+
+      - name: Compare versions
+        id: gate
+        run: |
+          if [ "${{ steps.current.outputs.version }}" = "${{ steps.upstream.outputs.tag }}" ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "Already up to date (${{ steps.current.outputs.version }})."
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "Update available: ${{ steps.current.outputs.version }} -> ${{ steps.upstream.outputs.tag }}"
+          fi
+
+      - name: Install the new engine
+        if: steps.gate.outputs.run == 'true'
+        run: Scripts/fetch_engine.sh "${{ steps.upstream.outputs.code }}"
+
+      - name: Check that the binary actually changed
+        if: steps.gate.outputs.run == 'true'
+        id: changed
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- Vendor/7zz; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Vendor/7zz did not change; nothing to release."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump the Mac7zip patch version
+        if: steps.changed.outputs.changed == 'true'
+        id: version
+        run: |
+          set -euo pipefail
+          current="$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Scripts/Info.plist)"
+          IFS=. read -r major minor patch <<< "$current"
+          next="$major.$minor.$((patch + 1))"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $next" Scripts/Info.plist
+          build="$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' Scripts/Info.plist)"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $((build + 1))" Scripts/Info.plist
+          echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "Bumped: $current -> $next"
+
+      - name: Build the DMG
+        if: steps.changed.outputs.changed == 'true'
+        run: make dmg
+
+      - name: Commit and push
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A Vendor THIRD_PARTY Scripts/Info.plist
+          git commit -m "Update bundled 7-Zip engine to ${{ steps.upstream.outputs.tag }}"
+          git push
+
+      - name: Publish the release
+        if: steps.changed.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${{ steps.version.outputs.next }}"
+          engine="${{ steps.upstream.outputs.tag }}"
+          notes="build/release-notes.md"
+          {
+            printf '## Mac7zip %s\n\n' "$version"
+            printf 'Automatic maintenance release: the bundled **7-Zip engine** was updated to **%s** (official `7zz`, universal arm64 + x86_64).\n\n' "$engine"
+            printf 'No application changes in this build — the same Mac7zip features, with a newer engine.\n\n'
+            printf '### Install\n\n'
+            printf '1. Download `Mac7zip-%s.dmg` below.\n' "$version"
+            printf '2. Open it and drag **Mac7zip** onto the **Applications** folder.\n'
+            printf '3. Ad-hoc signed: if macOS blocks the first launch, right-click Mac7zip ▸ **Open**. If it reports the app is damaged, run `xattr -dr com.apple.quarantine /Applications/Mac7zip.app`.\n'
+          } > "$notes"
+          gh release create "v$version" "build/Mac7zip-$version.dmg" \
+            --title "Mac7zip $version" \
+            --target main \
+            --notes-file "$notes"

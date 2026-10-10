@@ -1,3 +1,5 @@
+[English](README.md) · **简体中文**
+
 # Mac7zip
 
 macOS 上的 7-Zip 图形界面 —— 复刻 **Windows 桌面版 7-Zip File Manager** 的界面与交互，
@@ -5,8 +7,6 @@ macOS 上的 7-Zip 图形界面 —— 复刻 **Windows 桌面版 7-Zip File Man
 新建、测试——操作习惯与原版一致。
 
 > **可能是世界上最好用、最稳定的 Mac 压缩 / 解压工具之一，而且完全免费、开源。**
-
-[English README](README.md)
 
 > 最新安装包请在 [Releases](https://github.com/git8e/Mac7zip/releases) 页面下载（DMG）。
 
@@ -116,6 +116,10 @@ open build/Mac7zip.app
 ```bash
 make engine  # 从官方 GitHub 下载（Scripts/fetch_engine.sh）
 ```
+
+### 引擎自动更新
+
+内置引擎会自动保持最新。定时运行的 GitHub Actions 工作流（[`update-engine.yml`](.github/workflows/update-engine.yml)）会检查[上游 7-Zip 发布](https://github.com/ip7z/7zip/releases)；一旦有更新的 macOS `7zz`，就自动替换引擎、递增补丁版本号、构建 DMG 并发布新的 Release。
 
 ## 架构
 

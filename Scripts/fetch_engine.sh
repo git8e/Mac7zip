@@ -24,4 +24,4 @@ cp "$TMP/7zz" "$ROOT/Vendor/7zz"
 cp "$TMP/License.txt" "$ROOT/THIRD_PARTY/7-Zip-License.txt" 2>/dev/null || true
 chmod +x "$ROOT/Vendor/7zz"
 
-echo "==> Installed $("$ROOT/Vendor/7zz" 2>&1 | head -1)"
+echo "==> Installed $("$ROOT/Vendor/7zz" 2>&1 | grep -m1 '7-Zip (z)')"

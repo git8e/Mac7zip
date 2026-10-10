@@ -1,10 +1,10 @@
+**English** · [简体中文](README.zh-CN.md)
+
 # Mac7zip
 
 A native macOS GUI for 7-Zip — a faithful remake of the **Windows 7-Zip File Manager**, powered by the **official 7-Zip engine** (`7zz`). Double-click an archive and browse it, extract a single file or a folder, create or test archives — all with the familiar 7-Zip layout.
 
 > **Possibly one of the best and most stable macOS archiver tools in the world — and it is completely free and open source.**
-
-[简体中文说明](README.zh-CN.md)
 
 > **Download** the latest build from the [Releases](https://github.com/git8e/Mac7zip/releases) page (DMG).
 
@@ -112,6 +112,10 @@ If `Vendor/7zz` is missing:
 ```bash
 make engine  # downloads the official engine (Scripts/fetch_engine.sh)
 ```
+
+### Automatic engine updates
+
+The bundled engine is kept current automatically. A scheduled GitHub Actions workflow ([`update-engine.yml`](.github/workflows/update-engine.yml)) checks the [upstream 7-Zip releases](https://github.com/ip7z/7zip/releases); when a newer macOS `7zz` appears it bundles it, bumps the Mac7zip patch version, builds the DMG and publishes a new Release.
 
 ## Architecture
 
