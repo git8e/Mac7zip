@@ -107,7 +107,7 @@ Mac7zip 以 DMG 形式发布。**系统要求：** macOS 13 或以上——Apple
 make build   # 编译
 make run     # 直接运行（使用 Vendor/7zz）
 make app     # 打包成 build/Mac7zip.app
-make dmg     # 打包并生成 build/Mac7zip-1.0.dmg
+make dmg     # 打包并生成 build/Mac7zip-1.1.0.dmg
 open build/Mac7zip.app
 ```
 

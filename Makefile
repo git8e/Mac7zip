@@ -10,7 +10,7 @@ app:
 
 # Assemble the .app and wrap it in a distributable DMG.
 dmg: app
-	Scripts/make_dmg.sh 1.0
+	Scripts/make_dmg.sh 1.1.0
 
 # Run from source (uses Vendor/7zz).
 run:
