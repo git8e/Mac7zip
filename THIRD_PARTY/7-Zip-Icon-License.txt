@@ -2,16 +2,19 @@
 ==================
 
 The application icon included with Mac7Zip (`Resources/AppIcon.icns`) is built
-from the official 7-Zip program icon.
+from the official 7-Zip program icon — the same mark that the Windows File
+Manager (`7zFM.exe`, `CPP/7zip/UI/FileManager/FM.ico`) displays.
 
 7-Zip is Copyright (c) 1999-2026 Igor Pavlov and is distributed under the GNU
 Lesser General Public License (see `7-Zip-License.txt`).
 
-The vector artwork used as the source was obtained from Wikimedia Commons:
+The vector artwork used as the source (`Resources/7-Zip-Icon.svg`) was obtained
+from Wikimedia Commons:
 
-  File: 7ziplogo.svg  — "The logo of 7-Zip (program icon of the file archiver
-  7-Zip)", originally published at 7-zip.org/logos.html, vectorized by
-  CryptWizard et al., licensed under the GNU LGPL.
+  File: 7-Zip Icon.svg  — "The logo of 7-Zip (program icon of the file archiver
+  7-Zip)", originally published at 7-zip.org/logos.html, licensed under the
+  GNU LGPL.
 
-The generated `AppIcon.icns` is therefore also distributed under the LGPL, as
-part of the 7-Zip project's assets.
+The generator `Scripts/make_icon.swift` renders that artwork at every icon size
+(`make icon`). The generated `AppIcon.icns` is therefore also distributed under
+the LGPL, as part of the 7-Zip project's assets.

@@ -1,4 +1,4 @@
-.PHONY: build app dmg run clean engine
+.PHONY: build app dmg run clean engine icon
 
 # Compile the Swift package (debug).
 build:
@@ -19,6 +19,10 @@ run:
 # Re-download the official 7-Zip macOS engine into Vendor/.
 engine:
 	Scripts/fetch_engine.sh
+
+# Regenerate Resources/AppIcon.icns from the official 7-Zip program icon.
+icon:
+	swift Scripts/make_icon.swift Resources/7-Zip-Icon.svg Resources/AppIcon.icns
 
 clean:
 	rm -rf .build build

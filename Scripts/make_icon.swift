@@ -1,13 +1,19 @@
-// Generates Mac7Zip's .icns from an official 7-Zip logo image.
+// Generates Mac7Zip's .icns from the authentic 7-Zip program icon.
 //
 // Usage:
-//   swift Scripts/make_icon.swift <logo.png> <output.icns> [background-hex]
+//   swift Scripts/make_icon.swift <icon.svg> <output.icns>
 //
-// The logo is cropped to its visible bounds and centred on a rounded "app
-// tile" so the result reads as a proper macOS application icon at every size.
+// The source (`Resources/7-Zip-Icon.svg`) is the official 7-Zip program icon
+// as vector artwork — the very same mark that the Windows File Manager
+// (`7zFM.exe`, `CPP/7zip/UI/FileManager/FM.ico`) uses: a black-outlined
+// landscape rounded rectangle containing the black "7z" logo.
+//
+// To match the original 48x48 icon exactly, the artwork is drawn into the same
+// region the original uses (x 2...46, y 7...41 inside a 48x48 canvas). Because
+// the source is vector, every size is rendered crisply.
 //
 // The bundled artwork comes from the official 7-Zip program icon (7-Zip is
-// LGPL); see THIRD_PARTY/7-Zip-License.txt.
+// LGPL); see THIRD_PARTY/7-Zip-Icon-License.txt.
 
 import AppKit
 import CoreGraphics
@@ -20,60 +26,18 @@ func fail(_ message: String) -> Never {
 }
 
 let args = CommandLine.arguments
-guard args.count >= 3 else { fail("usage: make_icon <logo.png> <out.icns> [bg-hex]") }
+guard args.count >= 3 else { fail("usage: make_icon <icon.svg> <out.icns>") }
 let logoURL = URL(fileURLWithPath: args[1])
 let outURL = URL(fileURLWithPath: args[2])
 
-func color(fromHex hex: String) -> CGColor {
-    var s = hex
-    if s.hasPrefix("#") { s.removeFirst() }
-    guard s.count == 6, let value = Int(s, radix: 16) else {
-        return CGColor(red: 1, green: 1, blue: 1, alpha: 1)
-    }
-    return CGColor(
-        red: CGFloat((value >> 16) & 0xff) / 255,
-        green: CGFloat((value >> 8) & 0xff) / 255,
-        blue: CGFloat(value & 0xff) / 255,
-        alpha: 1
-    )
-}
-let background = color(fromHex: args.count > 3 ? args[3] : "FFFFFF")
-
-guard let logoImage = NSImage(contentsOf: logoURL),
-      let logo = logoImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
-    fail("cannot read logo at \(logoURL.path)")
+guard let logo = NSImage(contentsOf: logoURL) else {
+    fail("cannot read icon at \(logoURL.path)")
 }
 
-// Crop to the non-transparent bounding box.
-guard let provider = logo.dataProvider, let raw = provider.data,
-      let bytes = CFDataGetBytePtr(raw) else { fail("logo has no pixel data") }
-let width = logo.width
-let height = logo.height
-let bytesPerRow = logo.bytesPerRow
-let bytesPerPixel = logo.bitsPerPixel / 8
-guard bytesPerPixel >= 1 else { fail("unexpected pixel format") }
-
-var minX = width, minY = height, maxX = -1, maxY = -1
-for y in 0..<height {
-    for x in 0..<width {
-        let alpha = bytes[y * bytesPerRow + x * bytesPerPixel + (bytesPerPixel - 1)]
-        if alpha > 8 {
-            if x < minX { minX = x }
-            if x > maxX { maxX = x }
-            if y < minY { minY = y }
-            if y > maxY { maxY = y }
-        }
-    }
-}
-guard maxX >= minX, maxY >= minY else { fail("logo appears to be empty") }
-let cropWidth = maxX - minX + 1
-let cropHeight = maxY - minY + 1
-guard let cropped = logo.cropping(to: CGRect(x: minX, y: minY, width: cropWidth, height: cropHeight)) else {
-    fail("crop failed")
-}
-
+/// Renders the official 7-Zip icon at `size` x `size` pixels.
 func makeIcon(size: Int) -> CGImage {
     let s = CGFloat(size)
+    let scale = s / 48.0
     let space = CGColorSpaceCreateDeviceRGB()
     guard let ctx = CGContext(
         data: nil, width: size, height: size,
@@ -83,32 +47,15 @@ func makeIcon(size: Int) -> CGImage {
 
     ctx.interpolationQuality = .high
 
-    // Rounded background tile.
-    let margin = s * 0.06
-    let tile = CGRect(x: margin, y: margin, width: s - 2 * margin, height: s - 2 * margin)
-    let radius = tile.width * 0.225
-    let tilePath = CGPath(roundedRect: tile, cornerWidth: radius, cornerHeight: radius, transform: nil)
-    ctx.addPath(tilePath)
-    ctx.setFillColor(background)
-    ctx.fillPath()
+    // The original 48x48 program icon places its landscape artwork at
+    // x 2...46, y 7...41 (a 44x34 rounded rectangle). Reproduce that layout.
+    let artwork = CGRect(x: 2 * scale, y: 7 * scale, width: 44 * scale, height: 34 * scale)
 
-    // Hairline border for definition on light backgrounds.
-    ctx.addPath(tilePath)
-    ctx.setStrokeColor(CGColor(red: 0.78, green: 0.78, blue: 0.80, alpha: 1))
-    ctx.setLineWidth(max(1, s * 0.006))
-    ctx.strokePath()
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(cgContext: ctx, flipped: false)
+    logo.draw(in: artwork, from: .zero, operation: .sourceOver, fraction: 1)
+    NSGraphicsContext.restoreGraphicsState()
 
-    // Centred logo, sized to the tile width.
-    let targetWidth = tile.width * 0.70
-    let scale = targetWidth / CGFloat(cropWidth)
-    let targetHeight = CGFloat(cropHeight) * scale
-    let logoRect = CGRect(
-        x: (s - targetWidth) / 2,
-        y: (s - targetHeight) / 2,
-        width: targetWidth,
-        height: targetHeight
-    )
-    ctx.draw(cropped, in: logoRect)
     guard let image = ctx.makeImage() else { fail("cannot render icon") }
     return image
 }
