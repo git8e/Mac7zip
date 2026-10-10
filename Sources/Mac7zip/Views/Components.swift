@@ -34,49 +34,112 @@ struct ToolButton: View {
     }
 }
 
-/// Progress HUD shown while an operation runs.
+/// A flat, Windows-style progress bar drawn from primitives, so its thickness is
+/// predictable on macOS (the platform `ProgressView` renders as a thin line).
+/// Pass `nil` for an animated indeterminate bar.
+struct ProgressBar: View {
+    var fraction: Double?
+    var height: CGFloat = 12
+
+    @State private var phase: CGFloat = 0
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            ZStack(alignment: .leading) {
+                Capsule(style: .continuous)
+                    .fill(Color(nsColor: .quaternaryLabelColor))
+                if let fraction {
+                    Capsule(style: .continuous)
+                        .fill(Color.accentColor)
+                        .frame(width: max(0, min(1, fraction)) * width)
+                } else {
+                    Capsule(style: .continuous)
+                        .fill(Color.accentColor)
+                        .frame(width: width * 0.3)
+                        .offset(x: phase * width * 1.3 - width * 0.3)
+                        .onAppear {
+                            phase = 0
+                            withAnimation(.linear(duration: 1.1).repeatForever(autoreverses: false)) {
+                                phase = 1
+                            }
+                        }
+                }
+            }
+        }
+        .frame(height: height)
+    }
+}
+
+/// Centered progress dialog shown while an operation runs, styled after the
+/// Windows 7-Zip progress window: an opaque panel with the operation title, the
+/// current file, a full-width progress bar, the file count and a Cancel button.
 struct ProgressOverlay: View {
     @EnvironmentObject var model: AppModel
     let title: String
     let detail: String
     let fraction: Double?
+    var processed: Int = 0
+    var total: Int = 0
+
+    private let width: CGFloat = 440
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
-                ProgressView().controlSize(.small)
-                Text(title).font(.system(size: 12, weight: .medium))
-            }
-            if let fraction {
-                ProgressView(value: fraction)
-                    .frame(width: 320)
-                Text("\(Int(fraction * 100))%")
-                    .font(.system(size: 11).monospacedDigit())
-                    .foregroundStyle(.secondary)
-            } else {
-                ProgressView().progressViewStyle(.linear).frame(width: 320)
-            }
+        VStack(alignment: .leading, spacing: 14) {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold))
+                .lineLimit(1)
+
             if !detail.isEmpty {
                 Text(detail)
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                    .frame(width: 320, alignment: .leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            progressSection
+
             HStack {
                 Spacer()
                 Button(L("Cancel")) { model.cancelCurrentOperation() }
-                    .controlSize(.small)
+                    .keyboardShortcut(.cancelAction)
             }
         }
-        .padding(16)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.2))
+        .padding(20)
+        .frame(width: width)
+        .background(
+            Color(nsColor: .windowBackgroundColor),
+            in: RoundedRectangle(cornerRadius: 10)
         )
-        .shadow(radius: 12)
-        .padding(.top, 44)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.25), radius: 22, y: 10)
+    }
+
+    @ViewBuilder
+    private var progressSection: some View {
+        if let fraction {
+            VStack(alignment: .leading, spacing: 6) {
+                ProgressBar(fraction: fraction)
+                HStack {
+                    if total > 0 {
+                        Text(LF("Files: %d / %d", processed, total))
+                            .font(.system(size: 11).monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text("\(Int((fraction * 100).rounded()))%")
+                        .font(.system(size: 11).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
+            }
+        } else {
+            ProgressBar(fraction: nil)
+        }
     }
 }
 

@@ -34,9 +34,15 @@ struct MainWindowView: View {
             StatusBarView()
         }
         .frame(minWidth: 840, minHeight: 520)
-        .overlay(alignment: .top) {
+        .overlay {
             if model.isBusy, let progress = model.progress {
-                ProgressOverlay(title: progress.title, detail: progress.detail, fraction: progress.fraction)
+                ProgressOverlay(
+                    title: progress.title,
+                    detail: progress.detail,
+                    fraction: progress.fraction,
+                    processed: progress.processed,
+                    total: progress.total
+                )
             } else if model.isLoading {
                 ProgressOverlay(title: L("Opening…"), detail: "", fraction: nil)
             }

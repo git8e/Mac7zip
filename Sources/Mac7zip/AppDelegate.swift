@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -30,6 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Diagnostic flags used to verify a packaged build without a GUI:
     ///   Mac7zip --check-engine
     ///   Mac7zip --list <archive>
+    ///   Mac7zip --render-progress <out.png>   (renders the progress dialog)
+    @MainActor
     private func handleDiagnosticsIfNeeded() -> Bool {
         let args = CommandLine.arguments
 
@@ -57,6 +60,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("RenamedTo=\(LF("Renamed to %@", "x.txt"))")
             print("CopiedItems=\(LF("Copied %d items to %@", 2, "/tmp"))")
             print("localePackage=\(Locale.preferredLanguages.first ?? "?")")
+            exit(0)
+        }
+
+        if let index = args.firstIndex(of: "--render-progress"), args.count > index + 1 {
+            let path = args[index + 1]
+            let view = ProgressOverlay(
+                title: L("Extracting…"),
+                detail: "photos/IMG_2043.jpg",
+                fraction: 0.42,
+                processed: 5,
+                total: 12
+            )
+            .environmentObject(AppModel.shared)
+            let renderer = ImageRenderer(content: view)
+            renderer.scale = 2
+            if let image = renderer.nsImage,
+               let tiff = image.tiffRepresentation,
+               let rep = NSBitmapImageRep(data: tiff),
+               let png = rep.representation(using: .png, properties: [:]) {
+                try? png.write(to: URL(fileURLWithPath: path))
+                print("wrote \(path) \(Int(image.size.width))x\(Int(image.size.height))")
+            } else {
+                print("render failed")
+            }
             exit(0)
         }
 
