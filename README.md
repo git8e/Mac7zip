@@ -103,7 +103,7 @@ Requires macOS 13+ and the Xcode command line tools (Swift 6).
 make build   # compile
 make run     # run from source (uses Vendor/7zz)
 make app     # assemble build/Mac7zip.app
-make dmg     # assemble + create build/Mac7zip-1.1.0.dmg
+make dmg     # assemble + create build/Mac7zip-1.2.0.dmg
 open build/Mac7zip.app
 ```
 
