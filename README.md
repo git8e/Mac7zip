@@ -2,6 +2,8 @@
 
 A native macOS GUI for 7-Zip — a faithful remake of the **Windows 7-Zip File Manager**, powered by the **official 7-Zip engine** (`7zz`). Double-click an archive and browse it, extract a single file or a folder, create or test archives — all with the familiar 7-Zip layout.
 
+> **Possibly one of the best and most stable macOS archiver tools in the world — and it is completely free and open source.**
+
 [简体中文说明](README.zh-CN.md)
 
 > **Download** the latest build from the [Releases](https://github.com/git8e/Mac7Zip/releases) page (DMG).
@@ -31,6 +33,30 @@ Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip Fi
 - **Test integrity**, **delete items inside an archive**, and **Checksum** (CRC32 / CRC64 / SHA1 / SHA256 / BLAKE2sp)
 - Drag & drop to open, drag an item **out** of the archive to extract it, Finder "Open With", opening archives from the command line
 - Operation progress with cancel
+
+## How it compares
+
+Mac7Zip's biggest advantage is the **price: it is completely free and open source**. Here it is next to the most common macOS archivers (prices taken from each vendor's official page, October 2026):
+
+| Tool | Price | Open source | Native macOS GUI | Official 7-Zip engine | Create / update 7z | Browse inside archives | Ads / forced subscription |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| **Mac7Zip** | **Free** | ✅ | ✅ | ✅ official `7zz` | ✅ | ✅ | None |
+| 7-Zip (official, macOS) | Free | ✅ (LGPL) | ❌ CLI only (`7zz`) | ✅ | ✅ (CLI) | ❌ | None |
+| macOS Archive Utility | Free (system) | ❌ | ✅ extract only | ❌ | ❌ | ❌ | None |
+| The Unarchiver | Free | ❌ | ✅ extract only | ❌ | ❌ | ⚠️ limited | None |
+| Keka | Free (website) / $6.49 (Mac App Store) | ❌ | ✅ | ❌ | ✅ | ✅ | None |
+| Bandizip for Mac | $21.99 | ❌ | ✅ | ❌ | ✅ | ✅ | None |
+| BetterZip 6 | $35 (one-time) | ❌ | ✅ | ❌ | ✅ | ✅ | None |
+| WinZip Mac | Paid (annual subscription) | ❌ | ✅ | ❌ | ❌ (Zip/ZipX) | ✅ | Subscription only |
+
+**Why Mac7Zip wins on value**
+
+- **Price first**: free of charge and open source — no purchase, no subscription, no ads. Every alternative above is either paid (Keka $6.49 on the App Store, Bandizip $21.99, BetterZip $35, WinZip Mac billed yearly) or free but extract-only / command-line.
+- **Full graphical experience**: a native SwiftUI/AppKit file-manager window (folder tree + details list, three view modes, editable address bar) — the official 7-Zip on macOS has no GUI at all.
+- **Always the latest 7-Zip**: it drives the official `7zz` engine, so 7z/LZMA2 support and format coverage track upstream 7-Zip exactly.
+- **Work inside archives**: browse without extracting, open / rename / create / delete single items, and drag items out to extract them.
+
+> "Official 7-Zip engine" means calling the `7zz`/`7z` binary released by Igor Pavlov. Prices are taken from each vendor's official site (October 2026) and may change. All product names and trademarks belong to their respective owners.
 
 ## File association
 
@@ -110,4 +136,4 @@ Covers: engine location, create / list / **extract a single file** / test, encry
 
 - 7-Zip engine (`Vendor/7zz`): © Igor Pavlov, licensed under the GNU LGPL — see `THIRD_PARTY/7-Zip-License.txt`.
 - App icon: the official 7-Zip icon, vectorised for Wikimedia Commons — LGPL — see `THIRD_PARTY/7-Zip-Icon-License.txt`.
-- Mac7Zip itself: source code in this repository.
+- Mac7Zip itself: MIT licensed — see `LICENSE`.
