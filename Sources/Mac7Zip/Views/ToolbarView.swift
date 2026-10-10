@@ -31,6 +31,27 @@ struct ToolbarView: View {
                 model.showInfo()
             }
             Spacer()
+            ToolButton(
+                title: L("Tree"),
+                systemImage: model.showTreePanel ? "sidebar.left" : "sidebar.right",
+                enabled: true,
+                showsCaption: false
+            ) {
+                model.toggleTreePanel()
+            }
+            Picker("", selection: Binding(
+                get: { model.viewMode },
+                set: { model.setViewMode($0) }
+            )) {
+                ForEach(ViewMode.allCases) { mode in
+                    Image(systemName: mode.systemImage)
+                        .help(mode.title)
+                        .tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 132)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)

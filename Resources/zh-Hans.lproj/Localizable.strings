@@ -153,6 +153,12 @@
 "Ascending" = "升序";
 "Flat View" = "平铺视图";
 "Select Columns" = "选择列";
+"Icons" = "图标";
+"List" = "列表";
+"Details" = "详细信息";
+"View Mode" = "视图模式";
+"Show Folder Tree" = "显示文件夹树";
+"Tree" = "文件夹树";
 
 /* Tools */
 "Tools" = "工具";

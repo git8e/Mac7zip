@@ -88,6 +88,27 @@ struct ModelTests {
         #expect(AppModel.reduceNested(["folder/deep/leaf.bin", "folder"]) == ["folder"])
     }
 
+    @Test("Address bar navigation accepts known folders and rejects unknown ones")
+    func addressBarNavigation() {
+        let model = AppModel.shared
+        model.apply(sampleInfo())
+
+        #expect(model.navigate(toPath: "folder/deep"))
+        #expect(model.currentFolder == "folder/deep")
+
+        // Trailing slashes and backslashes are tolerated.
+        #expect(model.navigate(toPath: "/folder/"))
+        #expect(model.currentFolder == "folder")
+
+        // An empty path returns to the root.
+        #expect(model.navigate(toPath: ""))
+        #expect(model.currentFolder == "")
+
+        // Unknown folders leave the current folder unchanged.
+        #expect(!model.navigate(toPath: "does/not/exist"))
+        #expect(model.currentFolder == "")
+    }
+
     private func flatten(_ nodes: [ArchiveTreeNode]) -> [ArchiveTreeNode] {
         nodes.flatMap { [$0] + flatten($0.children) }
     }

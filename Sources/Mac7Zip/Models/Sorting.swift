@@ -122,6 +122,54 @@ enum CreateEntryKind {
     }
 }
 
+// MARK: - View modes (Windows "View" menu)
+
+enum ViewMode: String, CaseIterable, Identifiable {
+    case icons
+    case list
+    case details
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .icons: return L("Icons")
+        case .list: return L("List")
+        case .details: return L("Details")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .icons: return "square.grid.2x2"
+        case .list: return "list.bullet"
+        case .details: return "list.bullet.rectangle"
+        }
+    }
+}
+
+/// `UserDefaults`-backed view layout preferences, so the chosen view mode and
+/// tree-panel visibility survive relaunches like Windows 7-Zip.
+enum ViewPreferences {
+    static var viewMode: ViewMode {
+        get { ViewMode(rawValue: UserDefaults.standard.string(forKey: "viewMode") ?? "") ?? .details }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: "viewMode") }
+    }
+
+    static var showTreePanel: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: "showTreePanel") == nil { return true }
+            return UserDefaults.standard.bool(forKey: "showTreePanel")
+        }
+        set { UserDefaults.standard.set(newValue, forKey: "showTreePanel") }
+    }
+
+    static var flatView: Bool {
+        get { UserDefaults.standard.bool(forKey: "flatView") }
+        set { UserDefaults.standard.set(newValue, forKey: "flatView") }
+    }
+}
+
 // MARK: - Details columns (mirrors the Windows column set)
 
 enum DetailsColumn: String, CaseIterable, Identifiable {

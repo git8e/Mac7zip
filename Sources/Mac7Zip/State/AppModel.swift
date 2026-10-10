@@ -48,8 +48,14 @@ final class AppModel: ObservableObject {
 
     // View options (mirrors the Windows "View" menu)
     @Published var sort = SortState()
-    @Published var flatView = false
+    @Published var flatView = ViewPreferences.flatView
     @Published var visibleColumns: Set<DetailsColumn> = Set(DetailsColumn.allCases.filter { $0.shownByDefault })
+    @Published var viewMode: ViewMode = ViewPreferences.viewMode
+    @Published var showTreePanel: Bool = ViewPreferences.showTreePanel
+
+    /// Last password that unlocked the current archive, reused for operations
+    /// that cannot prompt (for example dragging an item out to Finder).
+    var lastPassword: String?
 
     // Pending operation inputs
     @Published var addSources: [URL] = []
@@ -211,7 +217,18 @@ final class AppModel: ObservableObject {
 
     func toggleFlatView() {
         flatView.toggle()
+        ViewPreferences.flatView = flatView
         refreshDetails()
+    }
+
+    func setViewMode(_ mode: ViewMode) {
+        viewMode = mode
+        ViewPreferences.viewMode = mode
+    }
+
+    func toggleTreePanel() {
+        showTreePanel.toggle()
+        ViewPreferences.showTreePanel = showTreePanel
     }
 
     func setColumn(_ column: DetailsColumn, visible: Bool) {
@@ -220,6 +237,29 @@ final class AppModel: ObservableObject {
         } else {
             visibleColumns.remove(column)
         }
+    }
+
+    /// Navigates to an archive-relative folder typed in the address bar.
+    /// Returns `false` (and leaves the view unchanged) when the path is unknown.
+    @discardableResult
+    func navigate(toPath path: String) -> Bool {
+        let trimmed = path
+            .replacingOccurrences(of: "\\", with: "/")
+            .trimmingCharacters(in: .whitespaces)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        if trimmed.isEmpty {
+            goRoot()
+            return true
+        }
+        if childrenMap[trimmed] != nil {
+            enter(folder: trimmed)
+            return true
+        }
+        if let match = childrenMap.keys.first(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+            enter(folder: match)
+            return true
+        }
+        return false
     }
 
     // MARK: - Selection (Edit menu)
@@ -596,6 +636,7 @@ final class AppModel: ObservableObject {
                     progress: handler
                 )
                 self.endBusy()
+                if let password { self.lastPassword = password }
                 self.statusText = LF("Extracted to %@", destination.path)
                 NSWorkspace.shared.activateFileViewerSelecting([destination])
             } catch SevenZipError.passwordRequired {

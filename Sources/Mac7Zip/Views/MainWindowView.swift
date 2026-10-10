@@ -14,11 +14,15 @@ struct MainWindowView: View {
             Divider()
 
             ZStack {
-                HSplitView {
-                    FolderTreeView()
-                        .frame(minWidth: 170, idealWidth: 230, maxWidth: 440)
-                    DetailsListView()
-                        .frame(minWidth: 420)
+                if model.showTreePanel {
+                    HSplitView {
+                        FolderTreeView()
+                            .frame(minWidth: 170, idealWidth: 230, maxWidth: 440)
+                        contentView
+                            .frame(minWidth: 420)
+                    }
+                } else {
+                    contentView
                 }
                 if !model.hasArchive && !model.isLoading {
                     EmptyStateView()
@@ -77,6 +81,16 @@ struct MainWindowView: View {
         }
         .onAppear {
             model.loadVersionIfNeeded()
+        }
+    }
+
+    @ViewBuilder
+    private var contentView: some View {
+        switch model.viewMode {
+        case .icons:
+            IconGridView()
+        case .list, .details:
+            DetailsListView()
         }
     }
 

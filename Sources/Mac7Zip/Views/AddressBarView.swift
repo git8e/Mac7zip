@@ -1,9 +1,14 @@
 import SwiftUI
 
-/// Path bar showing the current folder inside the archive, with clickable
-/// breadcrumb segments.
+/// Path bar showing the current folder inside the archive. The path segment is
+/// editable like the Windows 7-Zip address bar: type a folder and press Return
+/// to jump there.
 struct AddressBarView: View {
     @EnvironmentObject var model: AppModel
+
+    @State private var path = ""
+    @State private var invalid = false
+    @FocusState private var focused: Bool
 
     var body: some View {
         HStack(spacing: 6) {
@@ -18,17 +23,28 @@ struct AddressBarView: View {
                         .fontWeight(.medium)
                 }
                 .buttonStyle(.plain)
+                .help(info.url.path)
 
-                ForEach(Array(model.breadcrumb.enumerated()), id: \.offset) { index, component in
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9))
-                        .foregroundStyle(.tertiary)
-                    Button(component) {
-                        model.go(to: index)
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.secondary)
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.tertiary)
+
+                TextField("", text: $path)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                    .focused($focused)
+                    .onSubmit(commit)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(Color(nsColor: .textBackgroundColor).opacity(focused ? 1 : 0.5))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 5)
+                            .strokeBorder(invalid ? Color.red : Color.secondary.opacity(0.25), lineWidth: 1)
+                    )
+                    .frame(maxWidth: 520, alignment: .leading)
 
                 Spacer()
 
@@ -49,5 +65,26 @@ struct AddressBarView: View {
         .font(.system(size: 12))
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
+        .onAppear(perform: syncFromModel)
+        .onChange(of: model.currentFolder) { _ in
+            if !focused { syncFromModel() }
+        }
+        .onChange(of: model.archiveInfo?.url) { _ in
+            syncFromModel()
+        }
+    }
+
+    private func syncFromModel() {
+        path = model.currentFolder
+        invalid = false
+    }
+
+    private func commit() {
+        if model.navigate(toPath: path) {
+            invalid = false
+            path = model.currentFolder
+        } else {
+            invalid = true
+        }
     }
 }

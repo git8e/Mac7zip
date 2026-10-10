@@ -38,6 +38,9 @@ struct DetailsListView: NSViewRepresentable {
 
         table.doubleAction = #selector(Coordinator.doubleClicked(_:))
         table.target = context.coordinator
+        // Dragging a row out of the window promises the file to Finder, which
+        // extracts it on drop (like the Windows 7-Zip icon/list drag).
+        table.setDraggingSourceOperationMask(.copy, forLocal: false)
 
         let scroll = NSScrollView()
         scroll.documentView = table
@@ -54,14 +57,16 @@ struct DetailsListView: NSViewRepresentable {
         guard let table = context.coordinator.tableView else { return }
 
         // Keep column headers and visibility in sync with language and model.
+        // "List" mode shows names only, like the Windows list view.
+        let shownColumns: Set<DetailsColumn> = model.viewMode == .list ? [.name] : model.visibleColumns
         for column in table.tableColumns {
             column.title = DetailsColumn(rawValue: column.identifier.rawValue)?.title ?? column.title
             if let type = DetailsColumn(rawValue: column.identifier.rawValue) {
-                column.isHidden = !model.visibleColumns.contains(type)
+                column.isHidden = !shownColumns.contains(type)
             }
         }
 
-        let signature = "\(model.archiveInfo?.url.path ?? "")|\(model.currentFolder)|\(model.flatView)|\(model.sort.key.rawValue)|\(model.sort.ascending)|\(model.detailsRevision)"
+        let signature = "\(model.archiveInfo?.url.path ?? "")|\(model.currentFolder)|\(model.flatView)|\(model.sort.key.rawValue)|\(model.sort.ascending)|\(model.detailsRevision)|\(model.viewMode.rawValue)"
         if context.coordinator.signature != signature || context.coordinator.itemCount != model.details.count {
             context.coordinator.signature = signature
             context.coordinator.itemCount = model.details.count
@@ -153,6 +158,19 @@ struct DetailsListView: NSViewRepresentable {
             let row = table.clickedRow
             guard row >= 0, row < parent.model.details.count else { return }
             parent.model.activate(parent.model.details[row])
+        }
+
+        /// Dragging rows out of the archive extracts them to the drop target.
+        func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
+            guard row < parent.model.details.count,
+                  let engine = parent.model.engine,
+                  let archive = parent.model.archiveInfo?.url else { return nil }
+            return ArchiveItemPasteboard.writer(
+                for: parent.model.details[row],
+                engine: engine,
+                archive: archive,
+                password: parent.model.lastPassword
+            )
         }
 
         func syncSelection() {

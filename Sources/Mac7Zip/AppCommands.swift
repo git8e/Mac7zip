@@ -89,6 +89,21 @@ struct AppCommands: Commands {
                 }
             }
             Divider()
+            Picker(L("View Mode"), selection: Binding(
+                get: { model.viewMode },
+                set: { model.setViewMode($0) }
+            )) {
+                ForEach(ViewMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.inline)
+            Toggle(L("Show Folder Tree"), isOn: Binding(
+                get: { model.showTreePanel },
+                set: { _ in model.toggleTreePanel() }
+            ))
+            .keyboardShortcut("t", modifiers: [.command, .shift])
+            Divider()
             Button(L("Refresh")) { model.refresh() }
                 .keyboardShortcut("r", modifiers: .command)
                 .disabled(!model.hasArchive)
