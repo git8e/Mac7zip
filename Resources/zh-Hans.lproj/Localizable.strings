@@ -111,7 +111,6 @@
 "Split to volumes:" = "分卷大小:";
 "e.g. 100m, leave empty for a single file" = "例如 100m，留空表示不分卷";
 "Encrypt file names" = "加密文件名";
-"Sources (%d)" = "来源（%d 项）";
 "Compression method:" = "压缩方法:";
 "Dictionary size:" = "字典大小:";
 "Automatic" = "自动";

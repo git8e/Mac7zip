@@ -448,6 +448,34 @@ enum EncryptionMethod: String, CaseIterable, Identifiable {
     var switchValue: String { "-mem=" + rawValue }
 }
 
+/// "Split to volumes" combo in the Add dialog. The preset strings mirror the
+/// Windows 7-Zip list; the text after " - " is a friendly label only.
+enum VolumeSize {
+    static let presets = [
+        "10M",
+        "100M",
+        "1000M",
+        "650M - CD",
+        "700M - CD",
+        "4092M - FAT",
+        "4480M - DVD",
+        "8128M - DVD DL",
+        "23040M - BD",
+    ]
+
+    /// Turns whatever the combo holds into the value the engine wants: the size
+    /// token alone (Windows shows e.g. "650M - CD", but `-v` rejects the label).
+    static func argument(from raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return nil }
+        let head = trimmed
+            .split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+            .first.map(String.init) ?? trimmed
+        let token = head.filter { !$0.isWhitespace }
+        return token.isEmpty ? nil : token
+    }
+}
+
 struct CreateOptions {
     var format: ArchiveFormat = .sevenZip
     var level: CompressionLevel = .normal

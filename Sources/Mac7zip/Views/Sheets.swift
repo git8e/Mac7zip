@@ -80,6 +80,37 @@ private struct PasswordField: View {
     }
 }
 
+/// An editable drop-down, like the Windows 7-Zip combo box: type a size of
+/// your own, or pick one of the presets from the menu.
+private struct ComboBox: View {
+    @Binding var text: String
+    let items: [String]
+    var width: CGFloat = 200
+
+    var body: some View {
+        TextField(L("e.g. 100m"), text: $text)
+            .textFieldStyle(.roundedBorder)
+            .frame(width: width)
+            .overlay(alignment: .trailing) {
+                Menu {
+                    ForEach(items, id: \.self) { item in
+                        Button(item) { text = item }
+                    }
+                } label: {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 22, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .padding(.trailing, 2)
+            }
+    }
+}
+
 // MARK: - Extract
 
 struct ExtractSheet: View {
@@ -125,7 +156,7 @@ struct ExtractSheet: View {
                 }
             }
 
-            HStack(alignment: .top, spacing: 32) {
+            HStack(alignment: .top, spacing: 0) {
                 VStack(alignment: .leading, spacing: 10) {
                     FormRow(label: L("Path mode:"), width: labelWidth) {
                         Picker("", selection: $pathMode) {
@@ -150,6 +181,8 @@ struct ExtractSheet: View {
                     }
                 }
                 .frame(width: labelWidth + 8 + controlWidth, alignment: .leading)
+
+                Spacer(minLength: 24)
 
                 GroupBox {
                     VStack(alignment: .leading, spacing: 8) {
@@ -256,30 +289,12 @@ struct AddSheet: View {
                 Button(L("Browse…")) { chooseArchive() }
             }
 
-            HStack(alignment: .top, spacing: 32) {
+            // Left and right columns fill the dialog width, the way the Windows
+            // dialog lays its two groups out against both margins.
+            HStack(alignment: .top, spacing: 0) {
                 leftColumn
+                Spacer(minLength: 24)
                 rightColumn
-            }
-
-            GroupBox {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LF("Sources (%d)", model.addSources.count))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 1) {
-                            ForEach(model.addSources, id: \.self) { url in
-                                Text(url.lastPathComponent)
-                                    .font(.system(size: 11))
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .frame(height: 60)
-                }
-                .padding(4)
             }
 
             if let errorMessage {
@@ -398,9 +413,7 @@ struct AddSheet: View {
 
             if format.supportsMultiVolume {
                 FormRow(label: L("Split to volumes:"), width: labelWidth) {
-                    TextField(L("e.g. 100m"), text: $volume)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: controlWidth)
+                    ComboBox(text: $volume, items: VolumeSize.presets, width: controlWidth)
                 }
             }
 
@@ -535,7 +548,7 @@ struct AddSheet: View {
             password: password.isEmpty ? nil : password,
             encryptFileNames: encryptNames,
             solidBlock: solidBlock,
-            volumeSize: volume.isEmpty ? nil : volume,
+            volumeSize: VolumeSize.argument(from: volume),
             method: method.isEmpty ? nil : method,
             dictionary: dictionary.isEmpty ? nil : dictionary,
             wordSize: wordSize.isEmpty ? nil : wordSize,

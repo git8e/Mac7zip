@@ -290,4 +290,15 @@ struct OptionArgumentTests {
         #expect(ExtractPathMode.noPaths.switchValue == "-e")
         #expect(ExtractPathMode.absolutePaths.switchValue == "-spf")
     }
+
+    @Test("Split volume presets keep only the size token")
+    func volumeSizeArgument() {
+        #expect(VolumeSize.argument(from: "") == nil)
+        #expect(VolumeSize.argument(from: "   ") == nil)
+        #expect(VolumeSize.argument(from: "100m") == "100m")
+        #expect(VolumeSize.argument(from: "100 m") == "100m")
+        #expect(VolumeSize.argument(from: "650M - CD") == "650M")
+        #expect(VolumeSize.argument(from: "8128M - DVD DL") == "8128M")
+        #expect(VolumeSize.presets.first == "10M")
+    }
 }
