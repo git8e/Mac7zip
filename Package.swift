@@ -2,22 +2,22 @@
 import PackageDescription
 
 let package = Package(
-    name: "Mac7Zip",
+    name: "Mac7zip",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "Mac7Zip", targets: ["Mac7Zip"])
+        .executable(name: "Mac7zip", targets: ["Mac7zip"])
     ],
     targets: [
         .executableTarget(
-            name: "Mac7Zip",
-            path: "Sources/Mac7Zip"
+            name: "Mac7zip",
+            path: "Sources/Mac7zip"
         ),
         .testTarget(
-            name: "Mac7ZipTests",
-            dependencies: ["Mac7Zip"],
-            path: "Tests/Mac7ZipTests"
+            name: "Mac7zipTests",
+            dependencies: ["Mac7zip"],
+            path: "Tests/Mac7zipTests"
         )
     ],
     swiftLanguageModes: [.v5]

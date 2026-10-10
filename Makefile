@@ -4,7 +4,7 @@
 build:
 	swift build
 
-# Assemble build/Mac7Zip.app (release) with the bundled 7-Zip engine.
+# Assemble build/Mac7zip.app (release) with the bundled 7-Zip engine.
 app:
 	Scripts/build_app.sh release
 
@@ -14,7 +14,7 @@ dmg: app
 
 # Run from source (uses Vendor/7zz).
 run:
-	swift run Mac7Zip
+	swift run Mac7zip
 
 # Re-download the official 7-Zip macOS engine into Vendor/.
 engine:

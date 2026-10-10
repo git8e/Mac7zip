@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import Mac7Zip
+@testable import Mac7zip
 
 /// Verifies the navigation / selection logic that drives the outline and the
 /// details list — the parts of the 7-Zip style UI that do not need a screen.

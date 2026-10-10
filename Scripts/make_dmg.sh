@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# Builds a distributable DMG for Mac7Zip with the classic drag-to-Applications
+# Builds a distributable DMG for Mac7zip with the classic drag-to-Applications
 # layout: the app on the left, an Applications shortcut on the right, an arrow
 # background and a volume icon.
 #
-# Requires build/Mac7Zip.app (run `make app` first). The Finder layout step is
+# Requires build/Mac7zip.app (run `make app` first). The Finder layout step is
 # best-effort: if the terminal is not allowed to control Finder, or Finder is
 # not running, the DMG is still produced (without the pretty background).
 #
@@ -14,16 +14,16 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${1:-1.0}"
-APP="$ROOT/build/Mac7Zip.app"
+APP="$ROOT/build/Mac7zip.app"
 BUILD="$ROOT/build"
 STAGE="$BUILD/dmg-staging"
-RW_DMG="$BUILD/Mac7Zip-rw.dmg"
-DMG="$BUILD/Mac7Zip-$VERSION.dmg"
+RW_DMG="$BUILD/Mac7zip-rw.dmg"
+DMG="$BUILD/Mac7zip-$VERSION.dmg"
 BG="$BUILD/dmg-background.tiff"
-VOLNAME="Mac7Zip"
+VOLNAME="Mac7zip"
 
 if [ ! -d "$APP" ]; then
-    echo "error: build/Mac7Zip.app not found. Run 'make app' first." >&2
+    echo "error: build/Mac7zip.app not found. Run 'make app' first." >&2
     exit 1
 fi
 
@@ -92,12 +92,12 @@ tell application "Finder"
         set current view of container window to icon view
         set toolbar visible of container window to false
         set statusbar visible of container window to false
-        set the bounds of container window to {100, 100, 760, 520}
+        set the bounds of container window to {100, 100, 760, 548}
         set viewOptions to the icon view options of container window
         set arrangement of viewOptions to not arranged
         set icon size of viewOptions to 120
         set background picture of viewOptions to file ".background:background.tiff"
-        set position of item "Mac7Zip.app" of container window to {165, 205}
+        set position of item "Mac7zip.app" of container window to {165, 205}
         set position of item "Applications" of container window to {495, 205}
         update without registering applications
         delay 1

@@ -1,4 +1,4 @@
-// Generates Mac7Zip's .icns from the authentic 7-Zip program icon.
+// Generates Mac7zip's .icns from the authentic 7-Zip program icon.
 //
 // Usage:
 //   swift Scripts/make_icon.swift <icon.svg> <output.icns>
@@ -62,7 +62,7 @@ func makeIcon(size: Int) -> CGImage {
 
 let fileManager = FileManager.default
 let iconset = fileManager.temporaryDirectory
-    .appendingPathComponent("Mac7Zip-\(UUID().uuidString).iconset")
+    .appendingPathComponent("Mac7zip-\(UUID().uuidString).iconset")
 try? fileManager.createDirectory(at: iconset, withIntermediateDirectories: true)
 defer { try? fileManager.removeItem(at: iconset) }
 

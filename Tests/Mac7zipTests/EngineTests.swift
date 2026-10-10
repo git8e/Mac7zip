@@ -1,13 +1,13 @@
 import Testing
 import Foundation
-@testable import Mac7Zip
+@testable import Mac7zip
 
 /// End-to-end checks against the bundled official 7-Zip engine.
-@Suite("Mac7Zip engine")
+@Suite("Mac7zip engine")
 struct EngineTests {
     private func makeWorkspace() throws -> URL {
         let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Mac7ZipTests-\(UUID().uuidString)")
+            .appendingPathComponent("Mac7zipTests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         return root
     }

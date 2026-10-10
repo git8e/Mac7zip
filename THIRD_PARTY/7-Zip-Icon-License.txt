@@ -1,7 +1,7 @@
 7-Zip Icon License
 ==================
 
-The application icon included with Mac7Zip (`Resources/AppIcon.icns`) is built
+The application icon included with Mac7zip (`Resources/AppIcon.icns`) is built
 from the official 7-Zip program icon — the same mark that the Windows File
 Manager (`7zFM.exe`, `CPP/7zip/UI/FileManager/FM.ico`) displays.
 

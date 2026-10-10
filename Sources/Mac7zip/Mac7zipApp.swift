@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct Mac7ZipApp: App {
+struct Mac7zipApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var model = AppModel.shared
 

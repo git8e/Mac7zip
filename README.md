@@ -1,4 +1,4 @@
-# Mac7Zip
+# Mac7zip
 
 A native macOS GUI for 7-Zip — a faithful remake of the **Windows 7-Zip File Manager**, powered by the **official 7-Zip engine** (`7zz`). Double-click an archive and browse it, extract a single file or a folder, create or test archives — all with the familiar 7-Zip layout.
 
@@ -6,7 +6,7 @@ A native macOS GUI for 7-Zip — a faithful remake of the **Windows 7-Zip File M
 
 [简体中文说明](README.zh-CN.md)
 
-> **Download** the latest build from the [Releases](https://github.com/git8e/Mac7Zip/releases) page (DMG).
+> **Download** the latest build from the [Releases](https://github.com/git8e/Mac7zip/releases) page (DMG).
 
 ## Why
 
@@ -16,7 +16,7 @@ A native macOS GUI for 7-Zip — a faithful remake of the **Windows 7-Zip File M
 - you cannot extract just one file or folder;
 - create / add / test all require typing manual arguments.
 
-Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip File Manager: menu bar, toolbar (Add / Extract / Test / Delete / Info), path bar, **folder tree on the left + details list on the right**, and a status bar.
+Mac7zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip File Manager: menu bar, toolbar (Add / Extract / Test / Delete / Info), path bar, **folder tree on the left + details list on the right**, and a status bar.
 
 ## Features
 
@@ -24,7 +24,7 @@ Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip Fi
 - **File tree preview**: folder tree on the left, a details list with the familiar columns (Name / Size / Packed / Modified / Attributes / CRC / Method / Encrypted) on the right; double-click to enter a folder
 - **Three view modes** — Icons, List and Details — plus a collapsible folder-tree panel and an **editable address bar** (type a folder and press Return to jump)
 - **Sortable columns** (click a header) and a **Flat View** that lists every item at once
-- **Open files inside an archive**: double-click extracts and opens with the default app (nested archives open inside Mac7Zip), plus **Open Outside / View / Edit**
+- **Open files inside an archive**: double-click extracts and opens with the default app (nested archives open inside Mac7zip), plus **Open Outside / View / Edit**
 - **Right-click context menu** and full **File / Edit / View** menus (Select All, Deselect All, Invert Selection, column chooser)
 - **Rename** items and **Create Folder / Create File** directly inside an archive
 - **Copy To… / Move To…** the selected items out to a folder on disk
@@ -36,11 +36,11 @@ Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip Fi
 
 ## How it compares
 
-Mac7Zip's biggest advantage is the **price: it is completely free and open source**. Here it is next to the most common macOS archivers (prices taken from each vendor's official page, October 2026):
+Mac7zip's biggest advantage is the **price: it is completely free and open source**. Here it is next to the most common macOS archivers (prices taken from each vendor's official page, October 2026):
 
 | Tool | Price | Open source | Native macOS GUI | Official 7-Zip engine | Create / update 7z | Browse inside archives |
 | --- | --- | --- | --- | --- | --- | --- |
-| **Mac7Zip** | **Free** | ✅ | ✅ | ✅ official `7zz` | ✅ | ✅ |
+| **Mac7zip** | **Free** | ✅ | ✅ | ✅ official `7zz` | ✅ | ✅ |
 | 7-Zip (official, macOS) | Free | ✅ (LGPL) | ❌ CLI only (`7zz`) | ✅ | ✅ (CLI) | ❌ |
 | macOS Archive Utility | Free (system) | ❌ | ✅ extract only | ❌ | ❌ | ❌ |
 | The Unarchiver | Free | ❌ | ✅ extract only | ❌ | ❌ | ⚠️ limited |
@@ -49,7 +49,7 @@ Mac7Zip's biggest advantage is the **price: it is completely free and open sourc
 | BetterZip 6 | $35 (one-time) | ❌ | ✅ | ❌ | ✅ | ✅ |
 | WinZip Mac | Paid (annual subscription) | ❌ | ✅ | ❌ | ❌ (Zip/ZipX) | ✅ |
 
-**Why Mac7Zip wins on value**
+**Why Mac7zip wins on value**
 
 - **Price first**: free of charge and open source — no purchase and no subscription. Every alternative above is either paid (Keka $6.49 on the App Store, Bandizip $21.99, BetterZip $35, WinZip Mac billed yearly) or free but extract-only / command-line.
 - **Full graphical experience**: a native SwiftUI/AppKit file-manager window (folder tree + details list, three view modes, editable address bar) — the official 7-Zip on macOS has no GUI at all.
@@ -60,10 +60,10 @@ Mac7Zip's biggest advantage is the **price: it is completely free and open sourc
 
 ## File association
 
-By default macOS extracts an archive when you double-click it. With Mac7Zip you can make archive files **open in the app instead** — and it never steals the association silently:
+By default macOS extracts an archive when you double-click it. With Mac7zip you can make archive files **open in the app instead** — and it never steals the association silently:
 
-1. Open Mac7Zip, then use the menu **Associate ▸ Open Archives with Mac7Zip by Default**.
-2. Double-clicking a 7z/zip/rar/… file now opens it in Mac7Zip for browsing.
+1. Open Mac7zip, then use the menu **Associate ▸ Open Archives with Mac7zip by Default**.
+2. Double-clicking a 7z/zip/rar/… file now opens it in Mac7zip for browsing.
 
 Use **Associate ▸ Restore System Default Handlers** at any time to hand the associations back to macOS.
 
@@ -73,22 +73,22 @@ The app follows your system language by default (English / Simplified Chinese), 
 
 ## Install
 
-Mac7Zip ships as a DMG. **Requirements:** macOS 13 or later — both Apple Silicon and Intel are supported (a universal `7zz` engine is bundled).
+Mac7zip ships as a DMG. **Requirements:** macOS 13 or later — both Apple Silicon and Intel are supported (a universal `7zz` engine is bundled).
 
-1. **Download** the latest `Mac7Zip-<version>.dmg` from the [Releases](https://github.com/git8e/Mac7Zip/releases) page.
-2. **Open the DMG** (double-click it). A window opens with the Mac7Zip icon on the left and an **Applications** shortcut on the right, with an arrow telling you what to do.
-3. **Install** — drag **Mac7Zip** onto **Applications**.
+1. **Download** the latest `Mac7zip-<version>.dmg` from the [Releases](https://github.com/git8e/Mac7zip/releases) page.
+2. **Open the DMG** (double-click it). A window opens with the Mac7zip icon on the left and an **Applications** shortcut on the right, with an arrow telling you what to do.
+3. **Install** — drag **Mac7zip** onto **Applications**.
 4. **Eject** the DMG when you are done (drag it to the Trash); you no longer need it.
 5. **Launch** it from *Applications*. The first time, because the app is ad-hoc signed (not notarised yet), macOS may refuse to open it. Do one of these:
-   - **Control-click (right-click) Mac7Zip** in *Applications* → **Open** → **Open** again; or
-   - open **System Settings ▸ Privacy & Security**, scroll down and click **Open Anyway** next to the Mac7Zip message.
+   - **Control-click (right-click) Mac7zip** in *Applications* → **Open** → **Open** again; or
+   - open **System Settings ▸ Privacy & Security**, scroll down and click **Open Anyway** next to the Mac7zip message.
 
 After the first successful launch you can open it normally.
 
-> **"Mac7Zip is damaged and can't be opened"?** That message just means macOS quarantined the download. Remove the flag once, then reopen:
+> **"Mac7zip is damaged and can't be opened"?** That message just means macOS quarantined the download. Remove the flag once, then reopen:
 >
 > ```bash
-> xattr -dr com.apple.quarantine /Applications/Mac7Zip.app
+> xattr -dr com.apple.quarantine /Applications/Mac7zip.app
 > ```
 >
 > Only do this for a build you downloaded from this repository's Releases page.
@@ -102,9 +102,9 @@ Requires macOS 13+ and the Xcode command line tools (Swift 6).
 ```bash
 make build   # compile
 make run     # run from source (uses Vendor/7zz)
-make app     # assemble build/Mac7Zip.app
-make dmg     # assemble + create build/Mac7Zip-1.0.dmg
-open build/Mac7Zip.app
+make app     # assemble build/Mac7zip.app
+make dmg     # assemble + create build/Mac7zip-1.0.dmg
+open build/Mac7zip.app
 ```
 
 If `Vendor/7zz` is missing:
@@ -116,7 +116,7 @@ make engine  # downloads the official engine (Scripts/fetch_engine.sh)
 ## Architecture
 
 ```
-Sources/Mac7Zip/
+Sources/Mac7zip/
   Engine/     Wraps the official 7zz: process calls, -slt parsing, progress, password detection
   Models/     Data models and the directory tree builder
   State/      AppModel: navigation, selection, extract/compress/test/delete
@@ -145,13 +145,13 @@ Covers: engine location, create / list / **extract a single file** / test, encry
 ## Diagnostics (no GUI required)
 
 ```bash
-./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --check-engine
-./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --list /path/to/archive.7z
-./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --strings          # localized strings
+./build/Mac7zip.app/Contents/MacOS/Mac7zip --check-engine
+./build/Mac7zip.app/Contents/MacOS/Mac7zip --list /path/to/archive.7z
+./build/Mac7zip.app/Contents/MacOS/Mac7zip --strings          # localized strings
 ```
 
 ## License
 
 - 7-Zip engine (`Vendor/7zz`): © Igor Pavlov, licensed under the GNU LGPL — see `THIRD_PARTY/7-Zip-License.txt`.
 - App icon: the official 7-Zip icon, vectorised for Wikimedia Commons — LGPL — see `THIRD_PARTY/7-Zip-Icon-License.txt`.
-- Mac7Zip itself: MIT licensed — see `LICENSE`.
+- Mac7zip itself: MIT licensed — see `LICENSE`.

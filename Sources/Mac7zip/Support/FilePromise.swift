@@ -34,7 +34,7 @@ final class ArchiveItemPromise: NSObject, NSFilePromiseProviderDelegate {
         let itemPath = self.itemPath
         let password = self.password
         let temp = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Mac7ZipDrag-\(UUID().uuidString)")
+            .appendingPathComponent("Mac7zipDrag-\(UUID().uuidString)")
 
         let semaphore = DispatchSemaphore(value: 0)
         let box = ErrorBox()

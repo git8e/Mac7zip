@@ -38,7 +38,7 @@ enum EngineLocator {
         // Development fallback: the vendored copy in the package.
         let devPath = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()   // Engine
-            .deletingLastPathComponent()   // Mac7Zip
+            .deletingLastPathComponent()   // Mac7zip
             .deletingLastPathComponent()   // Sources
             .deletingLastPathComponent()   // package root
             .appendingPathComponent("Vendor/7zz")
@@ -60,7 +60,7 @@ enum EngineLocator {
         if fm.isExecutableFile(atPath: url.path) { return url }
 
         guard let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
-        let directory = caches.appendingPathComponent("Mac7Zip", isDirectory: true)
+        let directory = caches.appendingPathComponent("Mac7zip", isDirectory: true)
         try? fm.createDirectory(at: directory, withIntermediateDirectories: true)
         let destination = directory.appendingPathComponent("7zz")
         try? fm.removeItem(at: destination)

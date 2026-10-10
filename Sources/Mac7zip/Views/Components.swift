@@ -88,7 +88,7 @@ struct EmptyStateView: View {
             Image(systemName: "archivebox")
                 .font(.system(size: 52))
                 .foregroundStyle(.tertiary)
-            Text("Mac7Zip")
+            Text("Mac7zip")
                 .font(.title2.weight(.semibold))
             Text(L("Open an archive, or drop one onto the window"))
                 .foregroundStyle(.secondary)

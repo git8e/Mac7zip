@@ -8,7 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         NSApp.activate(ignoringOtherApps: true)
 
-        // Allow launching with an archive path: `open -a Mac7Zip file.7z`
+        // Allow launching with an archive path: `open -a Mac7zip file.7z`
         for argument in CommandLine.arguments.dropFirst() where !argument.hasPrefix("-") {
             let url = URL(fileURLWithPath: argument)
             if FileManager.default.fileExists(atPath: url.path) {
@@ -28,8 +28,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// Diagnostic flags used to verify a packaged build without a GUI:
-    ///   Mac7Zip --check-engine
-    ///   Mac7Zip --list <archive>
+    ///   Mac7zip --check-engine
+    ///   Mac7zip --list <archive>
     private func handleDiagnosticsIfNeeded() -> Bool {
         let args = CommandLine.arguments
 

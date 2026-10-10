@@ -41,14 +41,14 @@ func drawContent() {
         .font: NSFont.systemFont(ofSize: 26, weight: .bold),
         .foregroundColor: NSColor(deviceWhite: 0.15, alpha: 1.0),
     ]
-    centered("Mac7Zip", top: 74, attributes: titleAttrs)
+    centered("Mac7zip", top: 74, attributes: titleAttrs)
 
     let hintAttrs: [NSAttributedString.Key: Any] = [
         .font: NSFont.systemFont(ofSize: 13, weight: .regular),
         .foregroundColor: NSColor(deviceWhite: 0.35, alpha: 1.0),
     ]
-    centered("Drag Mac7Zip into the Applications folder to install", top: 104, attributes: hintAttrs)
-    centered("将 Mac7Zip 拖入 Applications 文件夹即可完成安装", top: 124, attributes: hintAttrs)
+    centered("Drag Mac7zip into the Applications folder to install", top: 104, attributes: hintAttrs)
+    centered("将 Mac7zip 拖入 Applications 文件夹即可完成安装", top: 124, attributes: hintAttrs)
 
     // Arrow between the app icon (x≈165) and the Applications icon (x≈495).
     let midY = yFromTop(205)
@@ -74,10 +74,10 @@ func drawContent() {
         .font: NSFont.systemFont(ofSize: 11, weight: .regular),
         .foregroundColor: NSColor(deviceWhite: 0.45, alpha: 1.0),
     ]
-    centered("First launch: right-click Mac7Zip in Applications and choose Open.",
-             top: 360, attributes: helpAttrs)
-    centered("首次打开：在“应用程序”中右键 Mac7Zip 并选择“打开”。",
-             top: 380, attributes: helpAttrs)
+    centered("First launch: right-click Mac7zip in Applications and choose Open.",
+             top: 350, attributes: helpAttrs)
+    centered("首次打开：在“应用程序”中右键 Mac7zip 并选择“打开”。",
+             top: 372, attributes: helpAttrs)
 }
 
 func makeRepresentation(scale: CGFloat) -> NSBitmapImageRep {

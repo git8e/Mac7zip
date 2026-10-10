@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Assembles Mac7Zip.app from the SwiftPM build product and bundles the
+# Assembles Mac7zip.app from the SwiftPM build product and bundles the
 # official 7-Zip engine (Vendor/7zz) into Contents/Resources.
 #
 # Usage: Scripts/build_app.sh [debug|release]   (default: release)
@@ -9,7 +9,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${1:-release}"
-APP_NAME="Mac7Zip"
+APP_NAME="Mac7zip"
 BUILD_DIR="$ROOT/build"
 APP="$BUILD_DIR/$APP_NAME.app"
 

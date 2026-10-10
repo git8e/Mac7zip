@@ -38,7 +38,7 @@ enum AppLanguage: String, CaseIterable, Identifiable {
 /// thread-safe because engine errors can be described off the main thread.
 final class Localization: ObservableObject {
     static let shared = Localization()
-    private static let defaultsKey = "Mac7Zip.language"
+    private static let defaultsKey = "Mac7zip.language"
 
     @Published private(set) var language: AppLanguage = .system
 

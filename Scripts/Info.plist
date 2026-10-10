@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
-	<string>Mac7Zip</string>
+	<string>Mac7zip</string>
 	<key>CFBundleIdentifier</key>
 	<string>cn.mac7zip.app</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Mac7Zip</string>
+	<string>Mac7zip</string>
 	<key>CFBundleDisplayName</key>
-	<string>Mac7Zip</string>
+	<string>Mac7zip</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -37,9 +37,9 @@
 	<true/>
 
 	<!--
-		File association. Archives open in Mac7Zip instead of being extracted.
+		File association. Archives open in Mac7zip instead of being extracted.
 		LSHandlerRank is "Alternate" so we never steal existing defaults at
-		install time; the user turns Mac7Zip into the default opener from the
+		install time; the user turns Mac7zip into the default opener from the
 		"Associate" menu (see AppCommands.AssociateDefaults).
 	-->
 	<key>CFBundleDocumentTypes</key>

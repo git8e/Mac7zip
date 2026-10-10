@@ -89,7 +89,7 @@ final class AppModel: ObservableObject {
 
     var hasArchive: Bool { archiveInfo != nil }
     var engineAvailable: Bool { engine != nil }
-    var archiveName: String { archiveInfo?.url.lastPathComponent ?? "Mac7Zip" }
+    var archiveName: String { archiveInfo?.url.lastPathComponent ?? "Mac7zip" }
 
     var breadcrumb: [String] {
         currentFolder.isEmpty ? [] : currentFolder.split(separator: "/").map(String.init)
@@ -331,7 +331,7 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// "Open Inside": extracts a nested archive and opens it in Mac7Zip.
+    /// "Open Inside": extracts a nested archive and opens it in Mac7zip.
     func openInside(_ node: ArchiveTreeNode) {
         extractToTemporary(node, password: nil) { [weak self] url in
             self?.open(url: url)
@@ -362,7 +362,7 @@ final class AppModel: ObservableObject {
         beginBusy(title: L("Extracting…"), total: 1)
         currentTask = Task {
             let directory = FileManager.default.temporaryDirectory
-                .appendingPathComponent("Mac7Zip", isDirectory: true)
+                .appendingPathComponent("Mac7zip", isDirectory: true)
                 .appendingPathComponent(UUID().uuidString, isDirectory: true)
             do {
                 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -456,7 +456,7 @@ final class AppModel: ObservableObject {
         beginBusy(title: L("Adding…"), total: 1)
         currentTask = Task {
             let workingDirectory = FileManager.default.temporaryDirectory
-                .appendingPathComponent("Mac7Zip-create-\(UUID().uuidString)", isDirectory: true)
+                .appendingPathComponent("Mac7zip-create-\(UUID().uuidString)", isDirectory: true)
             defer { try? FileManager.default.removeItem(at: workingDirectory) }
             do {
                 let itemURL = workingDirectory.appendingPathComponent(relative)

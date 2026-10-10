@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 import CoreServices
 
 /// Menu bar mirroring the Windows 7-Zip File Manager commands, plus a
-/// Language menu and a command that makes Mac7Zip the default opener for
+/// Language menu and a command that makes Mac7zip the default opener for
 /// archive types.
 struct AppCommands: Commands {
     @ObservedObject var model: AppModel
@@ -157,8 +157,8 @@ struct AppCommands: Commands {
         }
 
         CommandMenu(L("Associate")) {
-            Button(L("Open Archives with Mac7Zip by Default")) {
-                AssociateDefaults.setMac7ZipAsDefaultHandler()
+            Button(L("Open Archives with Mac7zip by Default")) {
+                AssociateDefaults.setMac7zipAsDefaultHandler()
             }
             .disabled(!model.engineAvailable)
             Button(L("Restore System Default Handlers")) {
@@ -167,10 +167,10 @@ struct AppCommands: Commands {
         }
 
         CommandGroup(replacing: .help) {
-            Button(L("About Mac7Zip")) {
+            Button(L("About Mac7zip")) {
                 NSApp.orderFrontStandardAboutPanel(options: [
                     .credits: NSAttributedString(
-                        string: L("Mac7Zip — a macOS GUI built on the official 7-Zip engine.\n7-Zip © Igor Pavlov.")
+                        string: L("Mac7zip — a macOS GUI built on the official 7-Zip engine.\n7-Zip © Igor Pavlov.")
                     )
                 ])
             }
@@ -194,7 +194,7 @@ struct AppCommands: Commands {
     }
 }
 
-/// Updates Launch Services so double-clicking an archive opens it in Mac7Zip
+/// Updates Launch Services so double-clicking an archive opens it in Mac7zip
 /// instead of extracting it. The change is intentionally user-triggered.
 enum AssociateDefaults {
     /// The archive content types this app declares itself as a candidate for.
@@ -234,7 +234,7 @@ enum AssociateDefaults {
 
     /// Shows an alert telling what happens next, then registers the app as the
     /// default handler for every supported archive UTI.
-    static func setMac7ZipAsDefaultHandler() {
+    static func setMac7zipAsDefaultHandler() {
         let types = contentTypes
         var succeeded = 0
         for type in types {
@@ -244,9 +244,9 @@ enum AssociateDefaults {
         let alert = NSAlert()
         alert.alertStyle = .informational
         if succeeded > 0 {
-            alert.messageText = L("Mac7Zip is now the default opener")
+            alert.messageText = L("Mac7zip is now the default opener")
             alert.informativeText = LF(
-                "Double-clicking %d archive types will now open them in Mac7Zip instead of extracting them.",
+                "Double-clicking %d archive types will now open them in Mac7zip instead of extracting them.",
                 succeeded
             )
         } else {

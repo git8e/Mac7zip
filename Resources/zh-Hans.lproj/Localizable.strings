@@ -198,14 +198,14 @@
 "Language" = "语言";
 "System" = "跟随系统";
 "Associate" = "关联";
-"Open Archives with Mac7Zip by Default" = "用 Mac7Zip 默认打开压缩包";
+"Open Archives with Mac7zip by Default" = "用 Mac7zip 默认打开压缩包";
 "Restore System Default Handlers" = "恢复系统默认打开方式";
-"About Mac7Zip" = "关于 Mac7Zip";
-"Mac7Zip — a macOS GUI built on the official 7-Zip engine.\n7-Zip © Igor Pavlov." = "Mac7Zip — 基于官方 7-Zip 引擎的 macOS 图形界面。\n7-Zip © Igor Pavlov.";
+"About Mac7zip" = "关于 Mac7zip";
+"Mac7zip — a macOS GUI built on the official 7-Zip engine.\n7-Zip © Igor Pavlov." = "Mac7zip — 基于官方 7-Zip 引擎的 macOS 图形界面。\n7-Zip © Igor Pavlov.";
 
 /* Association results */
-"Mac7Zip is now the default opener" = "Mac7Zip 现为默认打开方式";
-"Double-clicking %d archive types will now open them in Mac7Zip instead of extracting them." = "双击 %d 种压缩包类型时，现在将直接用 Mac7Zip 打开，而不会自动解压。";
+"Mac7zip is now the default opener" = "Mac7zip 现为默认打开方式";
+"Double-clicking %d archive types will now open them in Mac7zip instead of extracting them." = "双击 %d 种压缩包类型时，现在将直接用 Mac7zip 打开，而不会自动解压。";
 "Could not update associations" = "无法更新文件关联";
 "Launch Services refused the change. Try again from the Associations menu." = "系统拒绝了该更改。请从“关联”菜单重试。";
 "System default handlers restored" = "已恢复系统默认打开方式";
