@@ -51,11 +51,11 @@ struct ProgressBar: View {
                     .fill(Color(nsColor: .quaternaryLabelColor))
                 if let fraction {
                     Capsule(style: .continuous)
-                        .fill(Color.accentColor)
+                        .fill(Color(nsColor: .controlAccentColor))
                         .frame(width: max(0, min(1, fraction)) * width)
                 } else {
                     Capsule(style: .continuous)
-                        .fill(Color.accentColor)
+                        .fill(Color(nsColor: .controlAccentColor))
                         .frame(width: width * 0.3)
                         .offset(x: phase * width * 1.3 - width * 0.3)
                         .onAppear {

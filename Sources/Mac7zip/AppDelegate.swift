@@ -73,6 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 total: 12
             )
             .environmentObject(AppModel.shared)
+            .environment(\.colorScheme, .light)
             let renderer = ImageRenderer(content: view)
             renderer.scale = 2
             if let image = renderer.nsImage,
