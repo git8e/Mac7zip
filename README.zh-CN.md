@@ -104,10 +104,6 @@ swift test
 ./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --strings          # 查看当前语言下的字符串
 ```
 
-## 试用
-
-`Samples/演示.7z` 是一个示例压缩包（含中文名与多层目录），可直接用来体验文件树与单独解压。
-
 ## 许可
 
 - 7-Zip 引擎（`Vendor/7zz`）：© Igor Pavlov，GNU LGPL 许可，见 `THIRD_PARTY/7-Zip-License.txt`。

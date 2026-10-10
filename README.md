@@ -100,10 +100,6 @@ Covers: engine location, create / list / **extract a single file** / test, encry
 ./build/Mac7Zip.app/Contents/MacOS/Mac7Zip --strings          # localized strings
 ```
 
-## Try it
-
-`Samples/演示.7z` is a sample archive (Chinese names, nested folders) you can use to try the file tree and single-item extraction.
-
 ## License
 
 - 7-Zip engine (`Vendor/7zz`): © Igor Pavlov, licensed under the GNU LGPL — see `THIRD_PARTY/7-Zip-License.txt`.
