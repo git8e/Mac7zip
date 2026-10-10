@@ -165,3 +165,64 @@ struct SortingTests {
         #expect(model.details.map(\.name).sorted() == ["folder", "root.txt"])
     }
 }
+
+/// The advanced Add/Extract dialog options map onto the right 7-Zip switches.
+@Suite("Add and Extract options")
+struct OptionArgumentTests {
+    @Test("Default create options add no extra switches")
+    func defaultCreateOptions() {
+        #expect(CreateOptions().extraArguments.isEmpty)
+    }
+
+    @Test("Method, dictionary and threads become switches")
+    func methodDictionaryThreads() {
+        var options = CreateOptions()
+        options.method = "LZMA2"
+        options.dictionary = "64m"
+        options.threads = .four
+        #expect(options.extraArguments == ["-m0=LZMA2", "-md=64m", "-mmt=4"])
+    }
+
+    @Test("Dictionary is ignored for methods that do not accept it")
+    func dictionaryIgnoredForPpmd() {
+        var options = CreateOptions()
+        options.method = "PPMd"
+        options.dictionary = "64m"
+        #expect(options.extraArguments == ["-m0=PPMd"])
+    }
+
+    @Test("Zip only takes a dictionary with LZMA")
+    func zipDictionary() {
+        var options = CreateOptions(format: .zip)
+        options.method = "Deflate"
+        options.dictionary = "1m"
+        #expect(options.extraArguments == ["-m0=Deflate"])
+        options.method = "LZMA"
+        #expect(options.extraArguments == ["-m0=LZMA", "-md=1m"])
+    }
+
+    @Test("Update, path mode and delete-after switches")
+    func updatePathDelete() {
+        var options = CreateOptions()
+        options.updateMode = .synchronize
+        options.pathMode = .absolute
+        options.deleteAfterCompression = true
+        #expect(options.extraArguments == ["-up1q0r2x1y2z1w2", "-spf", "-sdel"])
+    }
+
+    @Test("All update modes map to distinct valid strings")
+    func updateModeStrings() {
+        #expect(UpdateMode.addAndReplace.switchValue == nil)
+        #expect(UpdateMode.updateAndAdd.switchValue == "-up1q1r2x1y2z1w2")
+        #expect(UpdateMode.freshen.switchValue == "-up1q1r0x1y2z1w2")
+        #expect(UpdateMode.synchronize.switchValue == "-up1q0r2x1y2z1w2")
+    }
+
+    @Test("Eliminate root folder adds -spe")
+    func eliminateRootSwitch() {
+        var options = ExtractOptions(items: nil, destination: URL(fileURLWithPath: "/tmp"))
+        #expect(options.extraArguments.isEmpty)
+        options.eliminateRoot = true
+        #expect(options.extraArguments == ["-spe"])
+    }
+}

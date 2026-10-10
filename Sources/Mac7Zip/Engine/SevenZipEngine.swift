@@ -9,6 +9,8 @@ struct ExtractOptions {
     var password: String?
     var overwrite: OverwriteMode = .overwrite
     var keepDirectoryStructure: Bool = true
+    /// "Eliminate duplication of root folder" (`-spe`).
+    var eliminateRoot: Bool = false
 }
 
 enum SevenZipError: Error, LocalizedError {
@@ -89,6 +91,7 @@ final class SevenZipEngine {
     ) async throws {
         var arguments = ["x", "-y", "-sccUTF-8", "-bb1", "-bsp0", options.overwrite.switchValue]
         if !options.keepDirectoryStructure { arguments.append("-e") }
+        arguments.append(contentsOf: options.extraArguments)
         arguments.append("-o" + options.destination.path)
         if let password = options.password, !password.isEmpty { arguments.append("-p" + password) }
         arguments.append(archive.path)
@@ -121,6 +124,7 @@ final class SevenZipEngine {
         let relativeSources = sources.map { Self.relativePath(of: $0, from: workingDirectory) }
 
         var arguments = ["a", "-y", "-sccUTF-8", "-bb1", "-bsp0", options.format.typeSwitch, options.level.switchValue]
+        arguments.append(contentsOf: options.extraArguments)
 
         if options.format.supportsSolid, !options.solid {
             arguments.append("-ms=off")

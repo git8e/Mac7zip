@@ -574,7 +574,7 @@ final class AppModel: ObservableObject {
         showExtractSheet = true
     }
 
-    func performExtract(destination: URL, password: String?, overwrite: OverwriteMode, keepPaths: Bool) {
+    func performExtract(destination: URL, password: String?, overwrite: OverwriteMode, keepPaths: Bool, eliminateRoot: Bool = false) {
         guard let engine, let info = archiveInfo else { return }
         let items = pendingExtractItems
         let total = fileCount(under: items ?? [])
@@ -589,7 +589,8 @@ final class AppModel: ObservableObject {
                         destination: destination,
                         password: password,
                         overwrite: overwrite,
-                        keepDirectoryStructure: keepPaths
+                        keepDirectoryStructure: keepPaths,
+                        eliminateRoot: eliminateRoot
                     ),
                     totalHint: total,
                     progress: handler
@@ -600,7 +601,7 @@ final class AppModel: ObservableObject {
             } catch SevenZipError.passwordRequired {
                 self.endBusy()
                 self.passwordPrompt = PasswordPrompt(title: L("Enter Password"), message: L("The archive is encrypted. Enter the password.")) { [weak self] pw in
-                    self?.performExtract(destination: destination, password: pw, overwrite: overwrite, keepPaths: keepPaths)
+                    self?.performExtract(destination: destination, password: pw, overwrite: overwrite, keepPaths: keepPaths, eliminateRoot: eliminateRoot)
                 }
             } catch SevenZipError.cancelled {
                 self.endBusy()

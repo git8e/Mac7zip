@@ -25,8 +25,8 @@ Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip Fi
 - **Right-click context menu** and full **File / Edit / View** menus (Select All, Deselect All, Invert Selection, column chooser)
 - **Rename** items and **Create Folder / Create File** directly inside an archive
 - **Copy To… / Move To…** the selected items out to a folder on disk
-- **Extract selected items only**: pick files or folders, recursively handled, with redundant "parent + child" selections automatically collapsed
-- **New archive / add to archive**: format, compression level, solid mode, password, file-name encryption, split volumes
+- **Extract selected items only**: pick files or folders, recursively handled, with redundant "parent + child" selections automatically collapsed; path mode (full / no paths), overwrite mode, *eliminate duplication of root folder*, password with show-password
+- **New archive / add to archive**: format, compression level, compression method, dictionary size, CPU threads, solid mode, update mode (add & replace / update & add / freshen / synchronize), path mode, volumes, password + file-name encryption, and *delete files after compression*
 - **Test integrity**, **delete items inside an archive**, and **Checksum** (CRC32 / CRC64 / SHA1 / SHA256 / BLAKE2sp)
 - Drag & drop to open, Finder "Open With", opening archives from the command line
 - Operation progress with cancel

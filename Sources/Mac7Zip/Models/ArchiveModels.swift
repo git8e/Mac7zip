@@ -255,6 +255,99 @@ enum CompressionLevel: Int, CaseIterable, Identifiable {
     var switchValue: String { "-mx\(rawValue)" }
 }
 
+/// Update modes shown in the Windows "Add to Archive" dialog. The concrete
+/// `-u` strings are the action sets defined by the engine (see
+/// `CPP/7zip/UI/Common/UpdateAction.cpp`), in `pqrxyzw` state order.
+enum UpdateMode: String, CaseIterable, Identifiable {
+    case addAndReplace
+    case updateAndAdd
+    case freshen
+    case synchronize
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .addAndReplace: return L("Add and replace files")
+        case .updateAndAdd: return L("Update and add files")
+        case .freshen: return L("Freshen existing files")
+        case .synchronize: return L("Synchronize files")
+        }
+    }
+
+    /// `nil` means the engine default (add and replace).
+    var switchValue: String? {
+        switch self {
+        case .addAndReplace: return nil
+        case .updateAndAdd: return "-up1q1r2x1y2z1w2"
+        case .freshen: return "-up1q1r0x1y2z1w2"
+        case .synchronize: return "-up1q0r2x1y2z1w2"
+        }
+    }
+}
+
+/// How source paths are stored (Windows "Path mode"). Mirrors
+/// `NWildcard::ECensorPathMode`.
+enum PathMode: String, CaseIterable, Identifiable {
+    case relative
+    case full
+    case absolute
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .relative: return L("Relative paths")
+        case .full: return L("Full paths")
+        case .absolute: return L("Absolute paths")
+        }
+    }
+
+    /// Switch used by the `a` command; `nil` is the engine default.
+    var addSwitch: String? {
+        switch self {
+        case .relative: return nil
+        case .full: return "-spf2"
+        case .absolute: return "-spf"
+        }
+    }
+}
+
+/// CPU thread count for compression (`-mmt`).
+enum ThreadOption: String, CaseIterable, Identifiable {
+    case auto
+    case one
+    case two
+    case four
+    case eight
+    case off
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .auto: return L("Auto")
+        case .one: return "1"
+        case .two: return "2"
+        case .four: return "4"
+        case .eight: return "8"
+        case .off: return L("Off")
+        }
+    }
+
+    /// `nil` means "let the engine decide".
+    var switchValue: String? {
+        switch self {
+        case .auto: return nil
+        case .one: return "-mmt=1"
+        case .two: return "-mmt=2"
+        case .four: return "-mmt=4"
+        case .eight: return "-mmt=8"
+        case .off: return "-mmt=off"
+        }
+    }
+}
+
 struct CreateOptions {
     var format: ArchiveFormat = .sevenZip
     var level: CompressionLevel = .normal
@@ -262,6 +355,83 @@ struct CreateOptions {
     var encryptFileNames: Bool = false
     var solid: Bool = true
     var volumeSize: String?
+    var method: String?
+    var dictionary: String?
+    var threads: ThreadOption = .auto
+    var updateMode: UpdateMode = .addAndReplace
+    var pathMode: PathMode = .relative
+    var deleteAfterCompression: Bool = false
+
+    /// Extra switches derived from the advanced options, in a stable order so
+    /// the behaviour is easy to test and matches the Windows dialog.
+    var extraArguments: [String] {
+        var arguments: [String] = []
+        if let method, !method.isEmpty {
+            arguments.append("-m0=" + method)
+        }
+        if let dictionary, !dictionary.isEmpty, acceptsDictionary {
+            arguments.append("-md=" + dictionary)
+        }
+        if let threads = threads.switchValue {
+            arguments.append(threads)
+        }
+        if let update = updateMode.switchValue {
+            arguments.append(update)
+        }
+        if let path = pathMode.addSwitch {
+            arguments.append(path)
+        }
+        if deleteAfterCompression {
+            arguments.append("-sdel")
+        }
+        return arguments
+    }
+
+    /// The dictionary-size switch (`-md`) only applies to LZMA/LZMA2.
+    private var acceptsDictionary: Bool {
+        switch format {
+        case .sevenZip:
+            guard let method else { return true }
+            let value = method.lowercased()
+            return value == "lzma" || value == "lzma2"
+        case .zip:
+            return (method?.lowercased() ?? "") == "lzma"
+        default:
+            return false
+        }
+    }
+}
+
+extension ArchiveFormat {
+    /// Compression methods offered in the Add dialog for this format.
+    var compressionMethods: [String] {
+        switch self {
+        case .sevenZip: return ["LZMA2", "LZMA", "PPMd", "BZip2", "Deflate", "Copy"]
+        case .zip: return ["Deflate", "Deflate64", "BZip2", "LZMA", "PPMd", "Copy"]
+        case .tar, .gzip, .bzip2, .xz, .wim: return []
+        }
+    }
+
+    /// Dictionary sizes offered for the formats that accept a `-md` switch.
+    var dictionarySizes: [String] {
+        switch self {
+        case .sevenZip, .zip:
+            return ["64k", "256k", "1m", "4m", "16m", "64m", "256m", "1g"]
+        default:
+            return []
+        }
+    }
+}
+
+extension ExtractOptions {
+    /// Extra switches derived from the advanced extract options.
+    var extraArguments: [String] {
+        var arguments: [String] = []
+        if eliminateRoot {
+            arguments.append("-spe")
+        }
+        return arguments
+    }
 }
 
 // MARK: - Progress

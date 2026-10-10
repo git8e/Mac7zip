@@ -146,4 +146,59 @@ struct EngineTests {
         let reduced = AppModel.reduceNested(["a/b/c.txt", "a/b", "a/x", "y.txt"])
         #expect(reduced == ["a/b", "a/x", "y.txt"])
     }
+
+    @Test("Compression method and update options are honoured")
+    func methodAndUpdateOptions() async throws {
+        let fm = FileManager.default
+        let root = try makeWorkspace()
+        defer { try? fm.removeItem(at: root) }
+
+        let engine = try SevenZipEngine.detect()
+        let src = try makeSourceTree(in: root)
+        let archive = root.appendingPathComponent("ppmd.7z")
+
+        var options = CreateOptions(format: .sevenZip, level: .fast)
+        options.method = "PPMd"
+        options.threads = .one
+        try await engine.create(archive: archive, sources: [src], options: options, totalHint: nil, progress: nil)
+
+        let info = try await engine.list(archive: archive, password: nil)
+        #expect((info.method ?? "").uppercased().contains("PPMD"))
+    }
+
+    @Test("Eliminate root folder drops a duplicated top directory")
+    func eliminateRootFolder() async throws {
+        let fm = FileManager.default
+        let root = try makeWorkspace()
+        defer { try? fm.removeItem(at: root) }
+
+        let engine = try SevenZipEngine.detect()
+        let src = try makeSourceTree(in: root)
+        let archive = root.appendingPathComponent("root.7z")
+        try await engine.create(
+            archive: archive,
+            sources: [src],
+            options: CreateOptions(format: .sevenZip, level: .fastest),
+            totalHint: nil,
+            progress: nil
+        )
+
+        // Destination last component matches the archive root ("src").
+        let out = root.appendingPathComponent("out/src")
+        try await engine.extract(
+            archive: archive,
+            options: ExtractOptions(
+                items: nil,
+                destination: out,
+                password: nil,
+                overwrite: .overwrite,
+                keepDirectoryStructure: true,
+                eliminateRoot: true
+            ),
+            totalHint: nil,
+            progress: nil
+        )
+        #expect(fm.fileExists(atPath: out.appendingPathComponent("a.txt").path))
+        #expect(!fm.fileExists(atPath: out.appendingPathComponent("src/a.txt").path))
+    }
 }

@@ -89,6 +89,22 @@
 "e.g. 100m, leave empty for a single file" = "例如 100m，留空表示不分卷";
 "Encrypt file names" = "加密文件名";
 "Sources (%d)" = "来源（%d 项）";
+"Compression method:" = "压缩方法:";
+"Dictionary size:" = "字典大小:";
+"Automatic" = "自动";
+"Update mode:" = "更新模式:";
+"Add and replace files" = "添加并替换文件";
+"Update and add files" = "更新并添加文件";
+"Freshen existing files" = "仅更新现有文件";
+"Synchronize files" = "同步文件";
+"Threads:" = "线程数:";
+"Auto" = "自动";
+"Off" = "关闭";
+"Relative paths" = "相对路径";
+"Absolute paths" = "绝对路径";
+"Delete files after compression" = "压缩后删除源文件";
+"Show password" = "显示密码";
+"Eliminate duplication of root folder" = "消除根目录重复";
 
 /* Compression levels */
 "Store" = "仅存储";

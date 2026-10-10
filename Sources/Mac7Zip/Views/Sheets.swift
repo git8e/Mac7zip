@@ -50,8 +50,10 @@ struct ExtractSheet: View {
     @State private var destination = ""
     @State private var overwrite: OverwriteMode = .overwrite
     @State private var keepPaths = true
+    @State private var eliminateRoot = false
     @State private var usePassword = false
     @State private var password = ""
+    @State private var showPassword = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -62,14 +64,14 @@ struct ExtractSheet: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
-                Text(L("Extract to:")).frame(width: 64, alignment: .trailing)
+                Text(L("Extract to:")).frame(width: 76, alignment: .trailing)
                 TextField(L("Destination folder"), text: $destination)
                     .textFieldStyle(.roundedBorder)
                 Button(L("Browse…")) { chooseDestination() }
             }
 
             HStack(spacing: 8) {
-                Text(L("Path mode:")).frame(width: 64, alignment: .trailing)
+                Text(L("Path mode:")).frame(width: 76, alignment: .trailing)
                 Picker("", selection: $keepPaths) {
                     Text(L("Full paths")).tag(true)
                     Text(L("No paths")).tag(false)
@@ -79,8 +81,10 @@ struct ExtractSheet: View {
                 .frame(width: 200)
             }
 
+            Toggle(L("Eliminate duplication of root folder"), isOn: $eliminateRoot)
+
             HStack(spacing: 8) {
-                Text(L("Overwrite mode:")).frame(width: 64, alignment: .trailing)
+                Text(L("Overwrite mode:")).frame(width: 76, alignment: .trailing)
                 Picker("", selection: $overwrite) {
                     ForEach(OverwriteMode.allCases) { mode in
                         Text(mode.title).tag(mode)
@@ -93,9 +97,17 @@ struct ExtractSheet: View {
             VStack(alignment: .leading, spacing: 6) {
                 Toggle(L("Use password"), isOn: $usePassword)
                 if usePassword {
-                    SecureField(L("Password"), text: $password)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 240)
+                    HStack(spacing: 8) {
+                        if showPassword {
+                            TextField(L("Password"), text: $password)
+                                .textFieldStyle(.roundedBorder)
+                        } else {
+                            SecureField(L("Password"), text: $password)
+                                .textFieldStyle(.roundedBorder)
+                        }
+                        Toggle(L("Show password"), isOn: $showPassword)
+                    }
+                    .frame(width: 320)
                 }
             }
 
@@ -108,7 +120,7 @@ struct ExtractSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 500)
+        .frame(width: 520)
         .onAppear {
             destination = model.suggestedExtractDestination?.path ?? ""
         }
@@ -140,7 +152,8 @@ struct ExtractSheet: View {
             destination: target,
             password: pw,
             overwrite: overwrite,
-            keepPaths: keepPaths
+            keepPaths: keepPaths,
+            eliminateRoot: eliminateRoot
         )
     }
 }
@@ -158,29 +171,40 @@ struct AddSheet: View {
     @State private var volume = ""
     @State private var usePassword = false
     @State private var password = ""
+    @State private var showPassword = false
     @State private var encryptNames = false
+    @State private var method: String = ""
+    @State private var dictionary: String = ""
+    @State private var threads: ThreadOption = .auto
+    @State private var updateMode: UpdateMode = .addAndReplace
+    @State private var pathMode: PathMode = .relative
+    @State private var deleteAfterCompression = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(L("Add to Archive")).font(.headline)
 
             HStack(spacing: 8) {
-                Text(L("Archive:")).frame(width: 72, alignment: .trailing)
+                Text(L("Archive:")).frame(width: 96, alignment: .trailing)
                 TextField("", text: $archivePath)
                     .textFieldStyle(.roundedBorder)
                 Button(L("Browse…")) { chooseArchive() }
             }
 
             HStack(spacing: 8) {
-                Text(L("Format:")).frame(width: 72, alignment: .trailing)
+                Text(L("Format:")).frame(width: 96, alignment: .trailing)
                 Picker("", selection: $format) {
                     ForEach(ArchiveFormat.allCases) { format in
                         Text(format.title).tag(format)
                     }
                 }
                 .labelsHidden()
-                .frame(width: 170)
-                .onChange(of: format) { _ in updateExtension() }
+                .frame(width: 150)
+                .onChange(of: format) { _ in
+                    method = ""
+                    dictionary = ""
+                    updateExtension()
+                }
 
                 Text(L("Level:")).frame(width: 48, alignment: .trailing)
                 Picker("", selection: $level) {
@@ -189,16 +213,74 @@ struct AddSheet: View {
                     }
                 }
                 .labelsHidden()
-                .frame(width: 120)
+                .frame(width: 110)
+            }
+
+            if !format.compressionMethods.isEmpty {
+                HStack(spacing: 8) {
+                    Text(L("Compression method:")).frame(width: 96, alignment: .trailing)
+                    Picker("", selection: $method) {
+                        Text(L("Automatic")).tag("")
+                        ForEach(format.compressionMethods, id: \.self) { name in
+                            Text(name).tag(name)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 150)
+
+                    Text(L("Dictionary size:")).frame(width: 110, alignment: .trailing)
+                    Picker("", selection: $dictionary) {
+                        Text(L("Automatic")).tag("")
+                        ForEach(format.dictionarySizes, id: \.self) { size in
+                            Text(size).tag(size)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: 110)
+                    .disabled(!dictionaryApplies)
+                }
+            }
+
+            HStack(spacing: 8) {
+                Text(L("Update mode:")).frame(width: 96, alignment: .trailing)
+                Picker("", selection: $updateMode) {
+                    ForEach(UpdateMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 190)
+
+                Text(L("Threads:")).frame(width: 60, alignment: .trailing)
+                Picker("", selection: $threads) {
+                    ForEach(ThreadOption.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 80)
+            }
+
+            HStack(spacing: 8) {
+                Text(L("Path mode:")).frame(width: 96, alignment: .trailing)
+                Picker("", selection: $pathMode) {
+                    ForEach(PathMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: 190)
             }
 
             if format.supportsSolid {
                 Toggle(L("Solid compression (better ratio, slightly slower for single files)"), isOn: $solid)
             }
 
+            Toggle(L("Delete files after compression"), isOn: $deleteAfterCompression)
+
             if format.supportsMultiVolume {
                 HStack(spacing: 8) {
-                    Text(L("Split to volumes:")).frame(width: 72, alignment: .trailing)
+                    Text(L("Split to volumes:")).frame(width: 96, alignment: .trailing)
                     TextField(L("e.g. 100m, leave empty for a single file"), text: $volume)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 240)
@@ -209,9 +291,17 @@ struct AddSheet: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Toggle(L("Use password"), isOn: $usePassword)
                     if usePassword {
-                        SecureField(L("Password"), text: $password)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 240)
+                        HStack(spacing: 8) {
+                            if showPassword {
+                                TextField(L("Password"), text: $password)
+                                    .textFieldStyle(.roundedBorder)
+                            } else {
+                                SecureField(L("Password"), text: $password)
+                                    .textFieldStyle(.roundedBorder)
+                            }
+                            Toggle(L("Show password"), isOn: $showPassword)
+                        }
+                        .frame(width: 320)
                         if format.supportsEncryptNames {
                             Toggle(L("Encrypt file names"), isOn: $encryptNames)
                         }
@@ -259,6 +349,15 @@ struct AddSheet: View {
         }
     }
 
+    /// The `-md` switch only applies to LZMA/LZMA2 (7z) or LZMA (zip).
+    private var dictionaryApplies: Bool {
+        switch format {
+        case .zip: return method == "LZMA"
+        case .sevenZip: return method.isEmpty || method == "LZMA" || method == "LZMA2"
+        default: return false
+        }
+    }
+
     private func chooseArchive() {
         let panel = NSSavePanel()
         panel.nameFieldStringValue = URL(fileURLWithPath: archivePath).lastPathComponent
@@ -282,7 +381,13 @@ struct AddSheet: View {
             password: usePassword && !password.isEmpty ? password : nil,
             encryptFileNames: encryptNames,
             solid: solid,
-            volumeSize: volume.isEmpty ? nil : volume
+            volumeSize: volume.isEmpty ? nil : volume,
+            method: method.isEmpty ? nil : method,
+            dictionary: dictionary.isEmpty ? nil : dictionary,
+            threads: threads,
+            updateMode: updateMode,
+            pathMode: pathMode,
+            deleteAfterCompression: deleteAfterCompression
         )
         let target = URL(fileURLWithPath: archivePath)
         dismiss()
