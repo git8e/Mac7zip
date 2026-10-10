@@ -38,20 +38,20 @@ Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip Fi
 
 Mac7Zip's biggest advantage is the **price: it is completely free and open source**. Here it is next to the most common macOS archivers (prices taken from each vendor's official page, October 2026):
 
-| Tool | Price | Open source | Native macOS GUI | Official 7-Zip engine | Create / update 7z | Browse inside archives | Ads / forced subscription |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| **Mac7Zip** | **Free** | ✅ | ✅ | ✅ official `7zz` | ✅ | ✅ | None |
-| 7-Zip (official, macOS) | Free | ✅ (LGPL) | ❌ CLI only (`7zz`) | ✅ | ✅ (CLI) | ❌ | None |
-| macOS Archive Utility | Free (system) | ❌ | ✅ extract only | ❌ | ❌ | ❌ | None |
-| The Unarchiver | Free | ❌ | ✅ extract only | ❌ | ❌ | ⚠️ limited | None |
-| Keka | Free (website) / $6.49 (Mac App Store) | ❌ | ✅ | ❌ | ✅ | ✅ | None |
-| Bandizip for Mac | $21.99 | ❌ | ✅ | ❌ | ✅ | ✅ | None |
-| BetterZip 6 | $35 (one-time) | ❌ | ✅ | ❌ | ✅ | ✅ | None |
-| WinZip Mac | Paid (annual subscription) | ❌ | ✅ | ❌ | ❌ (Zip/ZipX) | ✅ | Subscription only |
+| Tool | Price | Open source | Native macOS GUI | Official 7-Zip engine | Create / update 7z | Browse inside archives |
+| --- | --- | --- | --- | --- | --- | --- |
+| **Mac7Zip** | **Free** | ✅ | ✅ | ✅ official `7zz` | ✅ | ✅ |
+| 7-Zip (official, macOS) | Free | ✅ (LGPL) | ❌ CLI only (`7zz`) | ✅ | ✅ (CLI) | ❌ |
+| macOS Archive Utility | Free (system) | ❌ | ✅ extract only | ❌ | ❌ | ❌ |
+| The Unarchiver | Free | ❌ | ✅ extract only | ❌ | ❌ | ⚠️ limited |
+| Keka | Free (website) / $6.49 (Mac App Store) | ❌ | ✅ | ❌ | ✅ | ✅ |
+| Bandizip for Mac | $21.99 | ❌ | ✅ | ❌ | ✅ | ✅ |
+| BetterZip 6 | $35 (one-time) | ❌ | ✅ | ❌ | ✅ | ✅ |
+| WinZip Mac | Paid (annual subscription) | ❌ | ✅ | ❌ | ❌ (Zip/ZipX) | ✅ |
 
 **Why Mac7Zip wins on value**
 
-- **Price first**: free of charge and open source — no purchase, no subscription, no ads. Every alternative above is either paid (Keka $6.49 on the App Store, Bandizip $21.99, BetterZip $35, WinZip Mac billed yearly) or free but extract-only / command-line.
+- **Price first**: free of charge and open source — no purchase and no subscription. Every alternative above is either paid (Keka $6.49 on the App Store, Bandizip $21.99, BetterZip $35, WinZip Mac billed yearly) or free but extract-only / command-line.
 - **Full graphical experience**: a native SwiftUI/AppKit file-manager window (folder tree + details list, three view modes, editable address bar) — the official 7-Zip on macOS has no GUI at all.
 - **Always the latest 7-Zip**: it drives the official `7zz` engine, so 7z/LZMA2 support and format coverage track upstream 7-Zip exactly.
 - **Work inside archives**: browse without extracting, open / rename / create / delete single items, and drag items out to extract them.
@@ -73,9 +73,27 @@ The app follows your system language by default (English / Simplified Chinese), 
 
 ## Install
 
-- macOS 13 or later (Apple Silicon and Intel, universal `7zz` engine bundled).
-- Download the DMG from [Releases](https://github.com/git8e/Mac7Zip/releases), open it and drag **Mac7Zip.app** into *Applications*.
-- The app is ad-hoc signed for local use. The first launch may require *right-click ▸ Open* on the app.
+Mac7Zip ships as a DMG. **Requirements:** macOS 13 or later — both Apple Silicon and Intel are supported (a universal `7zz` engine is bundled).
+
+1. **Download** the latest `Mac7Zip-<version>.dmg` from the [Releases](https://github.com/git8e/Mac7Zip/releases) page.
+2. **Open the DMG** (double-click it). A window opens with the Mac7Zip icon on the left and an **Applications** shortcut on the right, with an arrow telling you what to do.
+3. **Install** — drag **Mac7Zip** onto **Applications**.
+4. **Eject** the DMG when you are done (drag it to the Trash); you no longer need it.
+5. **Launch** it from *Applications*. The first time, because the app is ad-hoc signed (not notarised yet), macOS may refuse to open it. Do one of these:
+   - **Control-click (right-click) Mac7Zip** in *Applications* → **Open** → **Open** again; or
+   - open **System Settings ▸ Privacy & Security**, scroll down and click **Open Anyway** next to the Mac7Zip message.
+
+After the first successful launch you can open it normally.
+
+> **"Mac7Zip is damaged and can't be opened"?** That message just means macOS quarantined the download. Remove the flag once, then reopen:
+>
+> ```bash
+> xattr -dr com.apple.quarantine /Applications/Mac7Zip.app
+> ```
+>
+> Only do this for a build you downloaded from this repository's Releases page.
+
+Prefer to build it yourself? See [Build from source](#build-from-source) below.
 
 ## Build from source
 
