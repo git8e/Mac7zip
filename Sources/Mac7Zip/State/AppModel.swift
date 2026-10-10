@@ -28,6 +28,7 @@ final class AppModel: ObservableObject {
     @Published var folderRoots: [ArchiveTreeNode] = []
     @Published var treeRoot: ArchiveTreeNode?
     @Published var details: [ArchiveTreeNode] = []
+    @Published var detailsRevision = 0
     @Published var currentFolder: String = ""
     @Published var selection: Set<String> = []
     @Published var statusText: String = L("Ready")
@@ -41,12 +42,23 @@ final class AppModel: ObservableObject {
     @Published var showAddSheet = false
     @Published var showExtractSheet = false
     @Published var showInfoSheet = false
+    @Published var showRenameSheet = false
+    @Published var showCreateSheet = false
+    @Published var showPropertiesSheet = false
+
+    // View options (mirrors the Windows "View" menu)
+    @Published var sort = SortState()
+    @Published var flatView = false
+    @Published var visibleColumns: Set<DetailsColumn> = Set(DetailsColumn.allCases.filter { $0.shownByDefault })
 
     // Pending operation inputs
     @Published var addSources: [URL] = []
     @Published var suggestedArchiveURL: URL?
     @Published var pendingExtractItems: [String]?
     @Published var suggestedExtractDestination: URL?
+    @Published var renameTarget: ArchiveTreeNode?
+    @Published var createKind: CreateEntryKind = .folder
+    @Published var propertiesTarget: ArchiveTreeNode?
 
     private var fullTree: [ArchiveTreeNode] = []
     private var childrenMap: [String: [ArchiveTreeNode]] = [:]
@@ -161,7 +173,68 @@ final class AppModel: ObservableObject {
     }
 
     func refreshDetails() {
-        details = childrenMap[currentFolder] ?? fullTree
+        let base: [ArchiveTreeNode]
+        if flatView {
+            base = fullTree.flatMap { [$0] + $0.allDescendants }
+        } else {
+            base = childrenMap[currentFolder] ?? fullTree
+        }
+        details = ArchiveSorter.sorted(base, by: sort)
+        detailsRevision &+= 1
+    }
+
+    /// The nodes currently selected in the details list.
+    var selectedNodes: [ArchiveTreeNode] {
+        details.filter { selection.contains($0.path) }
+    }
+
+    // MARK: - View options (View menu)
+
+    /// Applies a sort key; selecting the active key again flips the direction.
+    func sortBy(_ key: SortKey) {
+        if sort.key == key {
+            sort.ascending.toggle()
+        } else {
+            sort.key = key
+            sort.ascending = true
+        }
+        refreshDetails()
+    }
+
+    /// Called when the user clicks a details column header.
+    func applyColumnSort(id: String, ascending: Bool) {
+        guard let key = SortKey.allCases.first(where: { $0.columnID == id }) else { return }
+        sort.key = key
+        sort.ascending = ascending
+        refreshDetails()
+    }
+
+    func toggleFlatView() {
+        flatView.toggle()
+        refreshDetails()
+    }
+
+    func setColumn(_ column: DetailsColumn, visible: Bool) {
+        if visible {
+            visibleColumns.insert(column)
+        } else {
+            visibleColumns.remove(column)
+        }
+    }
+
+    // MARK: - Selection (Edit menu)
+
+    func selectAllItems() {
+        selection = Set(details.map(\.path))
+    }
+
+    func deselectAllItems() {
+        selection = []
+    }
+
+    func invertSelection() {
+        let all = Set(details.map(\.path))
+        selection = all.subtracting(selection)
     }
 
     // MARK: - Navigation
@@ -196,6 +269,288 @@ final class AppModel: ObservableObject {
     func activate(_ node: ArchiveTreeNode) {
         if node.isDirectory {
             enter(folder: node.path)
+        } else if isArchiveItem(node) {
+            openInside(node)
+        } else {
+            openOutside(node)
+        }
+    }
+
+    /// True when the item looks like an archive (so "Open Inside" makes sense).
+    func isArchiveItem(_ node: ArchiveTreeNode) -> Bool {
+        ArchiveTypes.extensions.contains((node.name as NSString).pathExtension.lowercased())
+    }
+
+    // MARK: - Open / View / Edit
+
+    /// Extracts a single item to a temporary folder and opens it with the
+    /// system default application (7-Zip's "Open" and double-click behaviour).
+    func openOutside(_ node: ArchiveTreeNode) {
+        extractToTemporary(node, password: nil) { url in
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    /// "Open Inside": extracts a nested archive and opens it in Mac7Zip.
+    func openInside(_ node: ArchiveTreeNode) {
+        extractToTemporary(node, password: nil) { [weak self] url in
+            self?.open(url: url)
+        }
+    }
+
+    /// "View": opens the extracted item in TextEdit (7-Zip's internal viewer
+    /// equivalent on macOS).
+    func viewFile(_ node: ArchiveTreeNode) {
+        extractToTemporary(node, password: nil) { url in
+            let textEdit = URL(fileURLWithPath: "/System/Applications/TextEdit.app")
+            let configuration = NSWorkspace.OpenConfiguration()
+            NSWorkspace.shared.open([url], withApplicationAt: textEdit, configuration: configuration)
+        }
+    }
+
+    /// "Edit": opens the extracted item in whatever program owns its type.
+    func editFile(_ node: ArchiveTreeNode) {
+        openOutside(node)
+    }
+
+    private func extractToTemporary(
+        _ node: ArchiveTreeNode,
+        password: String?,
+        then handler: @escaping (URL) -> Void
+    ) {
+        guard let engine, let info = archiveInfo else { return }
+        beginBusy(title: L("Extracting…"), total: 1)
+        currentTask = Task {
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("Mac7Zip", isDirectory: true)
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+            do {
+                try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+                try await engine.extract(
+                    archive: info.url,
+                    options: ExtractOptions(
+                        items: [node.path],
+                        destination: directory,
+                        password: password,
+                        overwrite: .overwrite,
+                        keepDirectoryStructure: true
+                    ),
+                    totalHint: 1,
+                    progress: nil
+                )
+                self.endBusy()
+                let extracted = directory.appendingPathComponent(node.path)
+                if FileManager.default.fileExists(atPath: extracted.path) {
+                    handler(extracted)
+                } else if let first = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil))?.first {
+                    handler(first)
+                }
+            } catch SevenZipError.passwordRequired {
+                self.endBusy()
+                self.passwordPrompt = PasswordPrompt(
+                    title: L("Enter Password"),
+                    message: L("The archive is encrypted. Enter the password.")
+                ) { [weak self] pw in
+                    self?.extractToTemporary(node, password: pw, then: handler)
+                }
+            } catch SevenZipError.cancelled {
+                self.endBusy()
+                self.statusText = L("Cancelled")
+            } catch {
+                self.endBusy()
+                self.present(error)
+            }
+        }
+    }
+
+    // MARK: - Rename inside archive
+
+    func beginRename(_ node: ArchiveTreeNode) {
+        renameTarget = node
+        showRenameSheet = true
+    }
+
+    func performRename(to newName: String) {
+        showRenameSheet = false
+        guard let engine, let info = archiveInfo, let node = renameTarget else { return }
+        renameTarget = nil
+        let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != node.name, !trimmed.contains("/") else { return }
+        let parent = node.entry?.parentPath ?? ""
+        let newPath = parent.isEmpty ? trimmed : parent + "/" + trimmed
+        let folder = currentFolder
+        beginBusy(title: L("Renaming…"), total: 1)
+        currentTask = Task {
+            do {
+                try await engine.rename(archive: info.url, pairs: [(node.path, newPath)], password: nil)
+                self.endBusy()
+                self.statusText = LF("Renamed to %@", trimmed)
+                await self.reloadArchive(folder: folder)
+                self.selection = [newPath]
+                self.refreshDetails()
+            } catch SevenZipError.passwordRequired {
+                self.endBusy()
+                self.present(SevenZipError.passwordRequired)
+            } catch {
+                self.endBusy()
+                self.present(error)
+            }
+        }
+    }
+
+    // MARK: - Create folder / file inside archive
+
+    func beginCreate(_ kind: CreateEntryKind) {
+        createKind = kind
+        showCreateSheet = true
+    }
+
+    func performCreateEntry(name: String) {
+        showCreateSheet = false
+        guard let engine, let info = archiveInfo else { return }
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        let isFolder = createKind == .folder
+        let folder = currentFolder
+        let relative = folder.isEmpty ? trimmed : folder + "/" + trimmed
+        beginBusy(title: L("Adding…"), total: 1)
+        currentTask = Task {
+            let workingDirectory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("Mac7Zip-create-\(UUID().uuidString)", isDirectory: true)
+            defer { try? FileManager.default.removeItem(at: workingDirectory) }
+            do {
+                let itemURL = workingDirectory.appendingPathComponent(relative)
+                try FileManager.default.createDirectory(
+                    at: itemURL.deletingLastPathComponent(),
+                    withIntermediateDirectories: true
+                )
+                if isFolder {
+                    try FileManager.default.createDirectory(at: itemURL, withIntermediateDirectories: false)
+                } else {
+                    FileManager.default.createFile(atPath: itemURL.path, contents: Data())
+                }
+                try await engine.addItems(
+                    archive: info.url,
+                    relativeItems: [relative],
+                    workingDirectory: workingDirectory,
+                    password: nil
+                )
+                self.endBusy()
+                self.statusText = LF("Added %@", trimmed)
+                await self.reloadArchive(folder: folder)
+                self.selection = [relative]
+                self.refreshDetails()
+            } catch {
+                self.endBusy()
+                self.present(error)
+            }
+        }
+    }
+
+    // MARK: - Copy To / Move To
+
+    func copySelectedTo() { transferSelected(move: false) }
+    func moveSelectedTo() { transferSelected(move: true) }
+
+    private func transferSelected(move: Bool) {
+        guard let engine, let info = archiveInfo else { return }
+        guard !selection.isEmpty else {
+            alert = AlertMessage(title: L("Notice"), message: L("Please select the items first."))
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = L("Select")
+        panel.message = move ? L("Move the selected items to…") : L("Copy the selected items to…")
+        guard panel.runModal() == .OK, let destination = panel.url else { return }
+
+        let items = Self.reduceNested(Array(selection))
+        let folder = currentFolder
+        let total = fileCount(under: items)
+        beginBusy(title: move ? L("Moving…") : L("Copying…"), total: total)
+        let handler = makeProgressHandler()
+        currentTask = Task {
+            do {
+                try await engine.extract(
+                    archive: info.url,
+                    options: ExtractOptions(
+                        items: items,
+                        destination: destination,
+                        password: nil,
+                        overwrite: .overwrite,
+                        keepDirectoryStructure: true
+                    ),
+                    totalHint: total,
+                    progress: handler
+                )
+                if move {
+                    try await engine.delete(archive: info.url, items: items, password: nil)
+                }
+                self.endBusy()
+                self.statusText = move
+                    ? LF("Moved %d items to %@", items.count, destination.path)
+                    : LF("Copied %d items to %@", items.count, destination.path)
+                await self.reloadArchive(folder: folder)
+                NSWorkspace.shared.activateFileViewerSelecting([destination])
+            } catch SevenZipError.passwordRequired {
+                self.endBusy()
+                self.present(SevenZipError.passwordRequired)
+            } catch SevenZipError.cancelled {
+                self.endBusy()
+                self.statusText = L("Cancelled")
+            } catch {
+                self.endBusy()
+                self.present(error)
+            }
+        }
+    }
+
+    // MARK: - Properties
+
+    func showProperties(_ node: ArchiveTreeNode) {
+        propertiesTarget = node
+        showPropertiesSheet = true
+    }
+
+    // MARK: - Checksum
+
+    func checksumArchive(algorithm: String) {
+        guard let engine, let info = archiveInfo else { return }
+        beginBusy(title: L("Calculating checksum…"), total: 0)
+        currentTask = Task {
+            do {
+                let value = try await engine.checksum(of: info.url, algorithm: algorithm)
+                self.endBusy()
+                self.alert = AlertMessage(
+                    title: algorithm,
+                    message: value.isEmpty ? L("Could not compute the checksum.") : value
+                )
+            } catch {
+                self.endBusy()
+                self.present(error)
+            }
+        }
+    }
+
+    // MARK: - Refresh
+
+    func refresh() {
+        guard hasArchive else { return }
+        let folder = currentFolder
+        Task { await reloadArchive(folder: folder) }
+    }
+
+    private func reloadArchive(folder: String) async {
+        guard let engine, let info = archiveInfo else { return }
+        guard let fresh = try? await engine.list(archive: info.url, password: nil) else { return }
+        apply(fresh)
+        if !folder.isEmpty, childrenMap[folder] != nil {
+            currentFolder = folder
+            selection = []
+            refreshDetails()
         }
     }
 

@@ -205,6 +205,71 @@ final class SevenZipEngine {
         }
     }
 
+    // MARK: - Rename inside archive
+
+    /// Renames one or more items inside the archive. 7-Zip's `rn` command takes
+    /// a single old/new pair per invocation, so pairs are applied in turn.
+    func rename(archive: URL, pairs: [(from: String, to: String)], password: String?) async throws {
+        for pair in pairs where pair.from != pair.to {
+            var arguments = ["rn", "-y", "-sccUTF-8", "-bso0", "-bsp0"]
+            if let password, !password.isEmpty { arguments.append("-p" + password) }
+            arguments.append(archive.path)
+            arguments.append(pair.from)
+            arguments.append(pair.to)
+            let output = try await runChecked(arguments, passwordProvided: password?.isEmpty == false)
+            if output.exitCode != 0 {
+                try throwForExit(output, passwordProvided: password?.isEmpty == false)
+            }
+        }
+    }
+
+    // MARK: - Add items to an existing archive
+
+    /// Adds items (paths relative to `workingDirectory`) to an existing archive
+    /// without changing its format or settings. Used for Create Folder/File and
+    /// for dropping files into an open archive.
+    func addItems(
+        archive: URL,
+        relativeItems: [String],
+        workingDirectory: URL,
+        password: String?
+    ) async throws {
+        guard !relativeItems.isEmpty else { return }
+        var arguments = ["a", "-y", "-sccUTF-8", "-bso0", "-bsp0"]
+        if let password, !password.isEmpty { arguments.append("-p" + password) }
+        arguments.append(archive.path)
+        arguments.append(contentsOf: relativeItems)
+
+        let output = try await ProcessRunner.run(
+            executable: executable,
+            arguments: arguments,
+            currentDirectory: workingDirectory
+        )
+        if Task.isCancelled { throw SevenZipError.cancelled }
+        if output.exitCode != 0 {
+            try throwForExit(output, passwordProvided: password?.isEmpty == false)
+        }
+    }
+
+    // MARK: - Checksum
+
+    /// Computes a checksum of a file on disk using 7-Zip's `h` command.
+    func checksum(of url: URL, algorithm: String) async throws -> String {
+        let arguments = ["h", "-scrc" + algorithm, "-bsp0", url.path]
+        let output = try await runChecked(arguments, passwordProvided: true)
+        if output.exitCode != 0 {
+            try throwForExit(output, passwordProvided: true)
+        }
+        for raw in output.stdout.split(separator: "\n") {
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            if line.lowercased().hasPrefix(algorithm.lowercased() + " for data:") {
+                guard let colon = line.lastIndex(of: ":") else { continue }
+                return String(line[line.index(after: colon)...]).trimmingCharacters(in: .whitespaces)
+            }
+        }
+        return ""
+    }
+
     // MARK: - Helpers
 
     @discardableResult

@@ -92,3 +92,76 @@ struct ModelTests {
         nodes.flatMap { [$0] + flatten($0.children) }
     }
 }
+
+/// Sorting and flat-view behaviour of the details list (Stage 1 port).
+@Suite("Details list sorting")
+struct SortingTests {
+    private func node(_ name: String, dir: Bool = false, size: UInt64 = 0) -> ArchiveTreeNode {
+        let entry = dir ? nil : ArchiveEntry(
+            path: name,
+            isDirectory: false,
+            size: size,
+            packedSize: size,
+            modified: nil,
+            crc: nil,
+            method: nil,
+            encrypted: false,
+            attributes: nil
+        )
+        return ArchiveTreeNode(path: name, name: name, isDirectory: dir, entry: entry, children: [])
+    }
+
+    @Test("Folders sort before files, then by name")
+    func foldersFirst() {
+        let nodes = [node("b.txt"), node("a", dir: true), node("a.txt"), node("z", dir: true)]
+        let sorted = ArchiveSorter.sorted(nodes, by: SortState(key: .name, ascending: true))
+        #expect(sorted.map(\.name) == ["a", "z", "a.txt", "b.txt"])
+    }
+
+    @Test("Size sort orders numerically and flips with direction")
+    func sizeSort() {
+        let nodes = [node("small", size: 1), node("big", size: 100), node("mid", size: 50)]
+        let ascending = ArchiveSorter.sorted(nodes, by: SortState(key: .size, ascending: true))
+        #expect(ascending.map(\.name) == ["small", "mid", "big"])
+        let descending = ArchiveSorter.sorted(nodes, by: SortState(key: .size, ascending: false))
+        #expect(descending.map(\.name) == ["big", "mid", "small"])
+    }
+
+    @Test("Unsorted keeps the original order")
+    func unsortedKeepsOrder() {
+        let nodes = [node("b.txt"), node("a", dir: true), node("c.txt")]
+        let sorted = ArchiveSorter.sorted(nodes, by: SortState(key: .unsorted))
+        #expect(sorted.map(\.name) == ["b.txt", "a", "c.txt"])
+    }
+
+    @Test("Flatten returns every node depth first")
+    @MainActor
+    func allDescendants() {
+        let leaf = node("leaf.bin", size: 10)
+        let deep = ArchiveTreeNode(path: "deep", name: "deep", isDirectory: true, entry: nil, children: [leaf])
+        let folder = ArchiveTreeNode(path: "folder", name: "folder", isDirectory: true, entry: nil, children: [deep])
+        #expect(folder.allDescendants.map(\.name) == ["deep", "leaf.bin"])
+    }
+
+    @Test("Flat view flattens the whole tree and sorting reapplies")
+    @MainActor
+    func flatView() {
+        let model = AppModel.shared
+        var info = ArchiveInfo(url: URL(fileURLWithPath: "/tmp/flat.7z"))
+        info.format = "7z"
+        info.entries = [
+            ArchiveEntry(path: "folder", isDirectory: true, size: nil, packedSize: nil, modified: nil, crc: nil, method: nil, encrypted: false, attributes: nil),
+            ArchiveEntry(path: "folder/leaf.bin", isDirectory: false, size: 10, packedSize: 10, modified: nil, crc: nil, method: nil, encrypted: false, attributes: nil),
+            ArchiveEntry(path: "root.txt", isDirectory: false, size: 1, packedSize: 1, modified: nil, crc: nil, method: nil, encrypted: false, attributes: nil),
+        ]
+        model.apply(info)
+        #expect(model.details.map(\.name).sorted() == ["folder", "root.txt"])
+
+        model.toggleFlatView()
+        #expect(Set(model.details.map(\.name)) == Set(["folder", "leaf.bin", "root.txt"]))
+        #expect(model.details.first?.isDirectory == true)
+
+        model.toggleFlatView()
+        #expect(model.details.map(\.name).sorted() == ["folder", "root.txt"])
+    }
+}

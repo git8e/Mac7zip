@@ -1,5 +1,6 @@
 .build/
 build/
+Reference/
 .DS_Store
 *.xcuserstate
 *.swp

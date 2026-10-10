@@ -112,6 +112,60 @@
 "Folders" = "文件夹";
 "Unpacked size" = "解压后大小";
 
+/* File / Edit menu (Stage 1 port) */
+"Open Inside" = "在内部打开";
+"Open Outside" = "在外部打开";
+"View" = "查看";
+"Edit" = "编辑";
+"Rename" = "重命名";
+"Copy To…" = "复制到…";
+"Move To…" = "移动到…";
+"Extract…" = "解压…";
+"Create Folder" = "新建文件夹";
+"Create File" = "新建文件";
+"Properties" = "属性";
+"Select All" = "全选";
+"Deselect All" = "取消选择";
+"Invert Selection" = "反向选择";
+"Refresh" = "刷新";
+
+/* Sort / view */
+"Sort By" = "排序方式";
+"Type" = "类型";
+"Date" = "日期";
+"Unsorted" = "不排序";
+"Ascending" = "升序";
+"Flat View" = "平铺视图";
+"Select Columns" = "选择列";
+
+/* Tools */
+"Tools" = "工具";
+"Checksum" = "校验和";
+
+/* Create / rename sheets */
+"New Folder" = "新建文件夹";
+"New File.txt" = "新建文件.txt";
+"File" = "文件";
+"No item selected" = "未选择项目";
+"Rename to" = "重命名为";
+
+/* Status / progress (Stage 1) */
+"Renaming…" = "正在重命名…";
+"Adding…" = "正在添加…";
+"Moving…" = "正在移动…";
+"Copying…" = "正在复制…";
+"Calculating checksum…" = "正在计算校验和…";
+"Renamed to %@" = "已重命名为 %@";
+"Added %@" = "已添加 %@";
+"Moved %d items to %@" = "已将 %d 个项目移动到 %@";
+"Copied %d items to %@" = "已将 %d 个项目复制到 %@";
+
+/* Dialog text (Stage 1) */
+"Please select the items first." = "请先选中要操作的项目。";
+"Move the selected items to…" = "将选中的项目移动到…";
+"Copy the selected items to…" = "将选中的项目复制到…";
+"Could not compute the checksum." = "无法计算校验和。";
+
 /* Menus */
 "Operations" = "操作";
 "Extract All…" = "全部解压…";

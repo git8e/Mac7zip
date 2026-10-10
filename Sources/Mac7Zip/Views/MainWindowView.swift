@@ -59,6 +59,15 @@ struct MainWindowView: View {
         .sheet(isPresented: $model.showInfoSheet) {
             InfoSheet()
         }
+        .sheet(isPresented: $model.showRenameSheet) {
+            RenameSheet()
+        }
+        .sheet(isPresented: $model.showCreateSheet) {
+            CreateEntrySheet()
+        }
+        .sheet(isPresented: $model.showPropertiesSheet) {
+            PropertiesSheet()
+        }
         .alert(item: $model.alert) { alert in
             Alert(
                 title: Text(alert.title),

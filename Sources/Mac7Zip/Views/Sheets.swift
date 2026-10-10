@@ -336,3 +336,117 @@ struct InfoSheet: View {
         .font(.system(size: 12))
     }
 }
+
+// MARK: - Rename
+
+struct RenameSheet: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(L("Rename")).font(.headline)
+            TextField(L("Name"), text: $name)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 300)
+                .onSubmit(submit)
+            HStack {
+                Spacer()
+                Button(L("Cancel")) { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button(L("OK")) { submit() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 380)
+        .onAppear { name = model.renameTarget?.name ?? "" }
+    }
+
+    private func submit() {
+        let value = name
+        dismiss()
+        model.performRename(to: value)
+    }
+}
+
+// MARK: - Create folder / file
+
+struct CreateEntrySheet: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+    @State private var name = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text(model.createKind.title).font(.headline)
+            TextField(L("Name"), text: $name)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 300)
+                .onSubmit(submit)
+            HStack {
+                Spacer()
+                Button(L("Cancel")) { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button(L("OK")) { submit() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 380)
+        .onAppear { name = model.createKind.placeholder }
+    }
+
+    private func submit() {
+        let value = name
+        dismiss()
+        model.performCreateEntry(name: value)
+    }
+}
+
+// MARK: - Properties (single item)
+
+struct PropertiesSheet: View {
+    @EnvironmentObject var model: AppModel
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(L("Properties")).font(.headline)
+            if let node = model.propertiesTarget {
+                infoRow(L("Name"), node.name)
+                infoRow(L("Path"), node.path)
+                infoRow(L("Type"), node.typeDescription)
+                infoRow(L("Size"), node.isDirectory ? "-" : Format.bytes(node.entry?.size))
+                infoRow(L("Packed"), node.isDirectory ? "-" : Format.bytes(node.entry?.packedSize))
+                infoRow(L("Modified"), Format.date(node.entry?.modified))
+                infoRow(L("Attributes"), node.entry.map(Format.attributes) ?? "-")
+                infoRow(L("CRC"), node.entry?.crc ?? "-")
+                infoRow(L("Method"), node.entry?.method ?? "-")
+                infoRow(L("Encrypted"), (node.entry?.encrypted ?? false) ? L("Yes") : L("No"))
+            } else {
+                Text(L("No item selected")).foregroundStyle(.secondary)
+            }
+            HStack {
+                Spacer()
+                Button(L("OK")) { dismiss() }
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 460)
+    }
+
+    private func infoRow(_ label: String, _ value: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(label)
+                .frame(width: 96, alignment: .trailing)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .textSelection(.enabled)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .font(.system(size: 12))
+    }
+}

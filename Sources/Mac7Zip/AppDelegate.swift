@@ -39,6 +39,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             print("Password=\(L("Password"))")
             print("FilesFolders=\(LF("%d files, %d folders", 3, 2))")
             print("Ready=\(L("Ready"))")
+            print("OpenOutside=\(L("Open Outside"))")
+            print("CreateFolder=\(L("Create Folder"))")
+            print("InvertSelection=\(L("Invert Selection"))")
+            print("FlatView=\(L("Flat View"))")
+            print("ChecksumMenu=\(L("Checksum"))")
+            print("RenamedTo=\(LF("Renamed to %@", "x.txt"))")
+            print("CopiedItems=\(LF("Copied %d items to %@", 2, "/tmp"))")
             print("localePackage=\(Locale.preferredLanguages.first ?? "?")")
             exit(0)
         }

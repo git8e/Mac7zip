@@ -18,6 +18,82 @@ struct AppCommands: Commands {
                 .keyboardShortcut("n", modifiers: .command)
         }
 
+        CommandGroup(after: .newItem) {
+            Divider()
+            Button(L("Open Inside")) { if let node = openInsideNode { model.openInside(node) } }
+                .disabled(openInsideNode == nil)
+            Button(L("Open Outside")) { if let node = singleFileNode { model.openOutside(node) } }
+                .disabled(singleFileNode == nil)
+            Button(L("View")) { if let node = singleFileNode { model.viewFile(node) } }
+                .disabled(singleFileNode == nil)
+            Button(L("Edit")) { if let node = singleFileNode { model.editFile(node) } }
+                .disabled(singleFileNode == nil)
+            Divider()
+            Button(L("Rename")) { if let node = singleNode { model.beginRename(node) } }
+                .disabled(singleNode == nil)
+            Button(L("Copy To…")) { model.copySelectedTo() }
+                .disabled(model.selection.isEmpty)
+            Button(L("Move To…")) { model.moveSelectedTo() }
+                .disabled(model.selection.isEmpty)
+            Divider()
+            Button(L("Create Folder")) { model.beginCreate(.folder) }
+                .disabled(!model.hasArchive)
+            Button(L("Create File")) { model.beginCreate(.file) }
+                .disabled(!model.hasArchive)
+            Divider()
+            Button(L("Delete")) { model.deleteSelected() }
+                .disabled(model.selection.isEmpty)
+            Button(L("Properties")) { if let node = singleNode { model.showProperties(node) } }
+                .disabled(singleNode == nil)
+        }
+
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            Button(L("Select All")) { model.selectAllItems() }
+                .keyboardShortcut("a", modifiers: .command)
+                .disabled(!model.hasArchive)
+            Button(L("Deselect All")) { model.deselectAllItems() }
+                .keyboardShortcut("a", modifiers: [.command, .shift])
+                .disabled(model.selection.isEmpty)
+            Button(L("Invert Selection")) { model.invertSelection() }
+                .disabled(!model.hasArchive)
+        }
+
+        CommandGroup(after: .toolbar) {
+            Divider()
+            Menu(L("Sort By")) {
+                ForEach(SortKey.allCases) { key in
+                    Toggle(key.title, isOn: Binding(
+                        get: { model.sort.key == key },
+                        set: { if $0 { model.sortBy(key) } }
+                    ))
+                }
+            }
+            .disabled(!model.hasArchive)
+            Toggle(L("Ascending"), isOn: Binding(
+                get: { model.sort.ascending },
+                set: { _ in model.sortBy(model.sort.key) }
+            ))
+            .disabled(!model.hasArchive || model.sort.key == .unsorted)
+            Toggle(L("Flat View"), isOn: Binding(
+                get: { model.flatView },
+                set: { _ in model.toggleFlatView() }
+            ))
+            .disabled(!model.hasArchive)
+            Menu(L("Select Columns")) {
+                ForEach(DetailsColumn.allCases) { column in
+                    Toggle(column.title, isOn: Binding(
+                        get: { model.visibleColumns.contains(column) },
+                        set: { model.setColumn(column, visible: $0) }
+                    ))
+                }
+            }
+            Divider()
+            Button(L("Refresh")) { model.refresh() }
+                .keyboardShortcut("r", modifiers: .command)
+                .disabled(!model.hasArchive)
+        }
+
         CommandMenu(L("Operations")) {
             Button(L("Extract All…")) { model.beginExtractAll() }
                 .keyboardShortcut("e", modifiers: .command)
@@ -33,6 +109,15 @@ struct AppCommands: Commands {
             Divider()
             Button(L("Info")) { model.showInfo() }
                 .disabled(!model.hasArchive)
+        }
+
+        CommandMenu(L("Tools")) {
+            Menu(L("Checksum")) {
+                ForEach(["CRC32", "CRC64", "SHA1", "SHA256", "BLAKE2sp"], id: \.self) { algorithm in
+                    Button(algorithm) { model.checksumArchive(algorithm: algorithm) }
+                }
+            }
+            .disabled(!model.hasArchive)
         }
 
         CommandMenu(L("Go")) {
@@ -75,6 +160,22 @@ struct AppCommands: Commands {
                 ])
             }
         }
+    }
+
+    // MARK: - Selection helpers
+
+    private var singleNode: ArchiveTreeNode? {
+        model.selection.count == 1 ? model.selectedNodes.first : nil
+    }
+
+    private var singleFileNode: ArchiveTreeNode? {
+        guard let node = singleNode, !node.isDirectory else { return nil }
+        return node
+    }
+
+    private var openInsideNode: ArchiveTreeNode? {
+        guard let node = singleFileNode else { return nil }
+        return ArchiveTypes.extensions.contains((node.name as NSString).pathExtension.lowercased()) ? node : nil
     }
 }
 

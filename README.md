@@ -20,9 +20,14 @@ Mac7Zip adds a native SwiftUI/AppKit interface that mirrors the Windows 7-Zip Fi
 
 - **Open / browse archives**: 7z, zip, rar, tar, gz, bz2, xz, iso, wim, cab, rpm, deb, jar… (anything the 7-Zip engine supports)
 - **File tree preview**: folder tree on the left, a details list with the familiar columns (Name / Size / Packed / Modified / Attributes / CRC / Method / Encrypted) on the right; double-click to enter a folder
+- **Sortable columns** (click a header) and a **Flat View** that lists every item at once
+- **Open files inside an archive**: double-click extracts and opens with the default app (nested archives open inside Mac7Zip), plus **Open Outside / View / Edit**
+- **Right-click context menu** and full **File / Edit / View** menus (Select All, Deselect All, Invert Selection, column chooser)
+- **Rename** items and **Create Folder / Create File** directly inside an archive
+- **Copy To… / Move To…** the selected items out to a folder on disk
 - **Extract selected items only**: pick files or folders, recursively handled, with redundant "parent + child" selections automatically collapsed
 - **New archive / add to archive**: format, compression level, solid mode, password, file-name encryption, split volumes
-- **Test integrity** and **delete items inside an archive**
+- **Test integrity**, **delete items inside an archive**, and **Checksum** (CRC32 / CRC64 / SHA1 / SHA256 / BLAKE2sp)
 - Drag & drop to open, Finder "Open With", opening archives from the command line
 - Operation progress with cancel
 
