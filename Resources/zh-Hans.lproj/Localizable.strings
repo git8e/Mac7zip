@@ -73,6 +73,28 @@
 "Will extract the selected %d items." = "将解压选中的 %d 个项目。";
 "Will extract the entire contents of the archive." = "将解压压缩包中的全部内容。";
 
+/* Add sheet (Windows-parity two-column layout) */
+"Archive format:" = "压缩包格式:";
+"Compression level:" = "压缩级别:";
+"Word size:" = "字长:";
+"Solid Block size:" = "固实块大小:";
+"Non-solid" = "非固实";
+"Number of CPU threads:" = "CPU 线程数:";
+"Parameters:" = "参数:";
+"Extra switches passed to the engine, separated by spaces." = "传递给引擎的额外开关，用空格分隔。";
+"Compress shared files" = "压缩共享文件";
+"Options" = "选项";
+"Encryption" = "加密";
+"Enter password:" = "输入密码:";
+"Reenter password:" = "再次输入密码:";
+"Show Password" = "显示密码";
+"Encryption method:" = "加密算法:";
+"Passwords do not match" = "两次输入的密码不一致";
+"e.g. 100m" = "例如 100m";
+
+/* Extract sheet (Windows-parity two-column layout) */
+"Extract into subfolder:" = "解压到子文件夹:";
+
 /* Overwrite modes */
 "Overwrite existing files" = "覆盖现有文件";
 "Skip existing files" = "跳过现有文件";

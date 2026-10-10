@@ -47,7 +47,7 @@ final class ArchiveItemPromise: NSObject, NSFilePromiseProviderDelegate {
                         destination: temp,
                         password: password,
                         overwrite: .overwrite,
-                        keepDirectoryStructure: true
+                        pathMode: .fullPaths
                     ),
                     totalHint: nil,
                     progress: nil

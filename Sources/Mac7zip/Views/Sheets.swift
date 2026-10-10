@@ -41,6 +41,45 @@ struct PasswordPromptView: View {
     }
 }
 
+// MARK: - Shared dialog pieces
+
+/// A right-aligned label in a fixed-width column so the controls of a dialog
+/// line up, mirroring the grid of the Windows 7-Zip dialogs.
+private struct FormRow<Content: View>: View {
+    let label: String
+    var width: CGFloat = 150
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .frame(width: width, alignment: .trailing)
+            content()
+        }
+    }
+}
+
+/// A password field that can reveal its text, shared by the Add and Extract
+/// dialogs.
+private struct PasswordField: View {
+    let placeholder: String
+    @Binding var text: String
+    let revealed: Bool
+    var width: CGFloat = 190
+
+    var body: some View {
+        Group {
+            if revealed {
+                TextField(placeholder, text: $text)
+            } else {
+                SecureField(placeholder, text: $text)
+            }
+        }
+        .textFieldStyle(.roundedBorder)
+        .frame(width: width)
+    }
+}
+
 // MARK: - Extract
 
 struct ExtractSheet: View {
@@ -49,11 +88,15 @@ struct ExtractSheet: View {
 
     @State private var destination = ""
     @State private var overwrite: OverwriteMode = .overwrite
-    @State private var keepPaths = true
+    @State private var pathMode: ExtractPathMode = .fullPaths
     @State private var eliminateRoot = false
-    @State private var usePassword = false
+    @State private var useSubfolder = false
+    @State private var subfolder = ""
     @State private var password = ""
     @State private var showPassword = false
+
+    private let labelWidth: CGFloat = 185
+    private let controlWidth: CGFloat = 210
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -64,51 +107,61 @@ struct ExtractSheet: View {
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 8) {
-                Text(L("Extract to:")).frame(width: 76, alignment: .trailing)
+                Text(L("Extract to:")).frame(width: labelWidth, alignment: .trailing)
                 TextField(L("Destination folder"), text: $destination)
                     .textFieldStyle(.roundedBorder)
                 Button(L("Browse…")) { chooseDestination() }
             }
 
-            HStack(spacing: 8) {
-                Text(L("Path mode:")).frame(width: 76, alignment: .trailing)
-                Picker("", selection: $keepPaths) {
-                    Text(L("Full paths")).tag(true)
-                    Text(L("No paths")).tag(false)
+            FormRow(label: L("Extract into subfolder:"), width: labelWidth) {
+                HStack(spacing: 8) {
+                    Toggle("", isOn: $useSubfolder)
+                        .labelsHidden()
+                        .toggleStyle(.checkbox)
+                    TextField("", text: $subfolder)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: controlWidth)
+                        .disabled(!useSubfolder)
                 }
-                .labelsHidden()
-                .pickerStyle(.segmented)
-                .frame(width: 200)
             }
 
-            Toggle(L("Eliminate duplication of root folder"), isOn: $eliminateRoot)
-
-            HStack(spacing: 8) {
-                Text(L("Overwrite mode:")).frame(width: 76, alignment: .trailing)
-                Picker("", selection: $overwrite) {
-                    ForEach(OverwriteMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 220)
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Toggle(L("Use password"), isOn: $usePassword)
-                if usePassword {
-                    HStack(spacing: 8) {
-                        if showPassword {
-                            TextField(L("Password"), text: $password)
-                                .textFieldStyle(.roundedBorder)
-                        } else {
-                            SecureField(L("Password"), text: $password)
-                                .textFieldStyle(.roundedBorder)
+            HStack(alignment: .top, spacing: 32) {
+                VStack(alignment: .leading, spacing: 10) {
+                    FormRow(label: L("Path mode:"), width: labelWidth) {
+                        Picker("", selection: $pathMode) {
+                            ForEach(ExtractPathMode.allCases) { mode in
+                                Text(mode.title).tag(mode)
+                            }
                         }
-                        Toggle(L("Show password"), isOn: $showPassword)
+                        .labelsHidden()
+                        .frame(width: controlWidth)
                     }
-                    .frame(width: 320)
+
+                    Toggle(L("Eliminate duplication of root folder"), isOn: $eliminateRoot)
+
+                    FormRow(label: L("Overwrite mode:"), width: labelWidth) {
+                        Picker("", selection: $overwrite) {
+                            ForEach(OverwriteMode.allCases) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: controlWidth)
+                    }
                 }
+                .frame(width: labelWidth + 8 + controlWidth, alignment: .leading)
+
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PasswordField(placeholder: L("Password"), text: $password, revealed: showPassword)
+                        Toggle(L("Show Password"), isOn: $showPassword)
+                    }
+                    .padding(6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    Text(L("Password"))
+                }
+                .frame(width: 250)
             }
 
             HStack {
@@ -120,9 +173,10 @@ struct ExtractSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 520)
+        .frame(width: 745)
         .onAppear {
             destination = model.suggestedExtractDestination?.path ?? ""
+            subfolder = model.archiveInfo?.url.deletingPathExtension().lastPathComponent ?? ""
         }
     }
 
@@ -145,14 +199,17 @@ struct ExtractSheet: View {
     }
 
     private func submit() {
-        let target = URL(fileURLWithPath: destination)
-        let pw = usePassword && !password.isEmpty ? password : nil
+        var target = URL(fileURLWithPath: destination)
+        if useSubfolder, !subfolder.isEmpty {
+            target.appendPathComponent(subfolder)
+        }
+        let pw = password.isEmpty ? nil : password
         dismiss()
         model.performExtract(
             destination: target,
             password: pw,
             overwrite: overwrite,
-            keepPaths: keepPaths,
+            pathMode: pathMode,
             eliminateRoot: eliminateRoot
         )
     }
@@ -167,146 +224,41 @@ struct AddSheet: View {
     @State private var archivePath = ""
     @State private var format: ArchiveFormat = .sevenZip
     @State private var level: CompressionLevel = .normal
-    @State private var solid = true
+    @State private var solidBlock: SolidBlockOption = .auto
     @State private var volume = ""
-    @State private var usePassword = false
     @State private var password = ""
+    @State private var password2 = ""
     @State private var showPassword = false
     @State private var encryptNames = false
+    @State private var encryptionMethod: EncryptionMethod = .aes256
     @State private var method: String = ""
     @State private var dictionary: String = ""
+    @State private var wordSize: String = ""
     @State private var threads: ThreadOption = .auto
     @State private var updateMode: UpdateMode = .addAndReplace
     @State private var pathMode: PathMode = .relative
+    @State private var compressSharedFiles = false
     @State private var deleteAfterCompression = false
+    @State private var parameters = ""
+    @State private var errorMessage: String?
+
+    private let labelWidth: CGFloat = 150
+    private let controlWidth: CGFloat = 200
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text(L("Add to Archive")).font(.headline)
 
             HStack(spacing: 8) {
-                Text(L("Archive:")).frame(width: 96, alignment: .trailing)
+                Text(L("Archive:")).frame(width: labelWidth, alignment: .trailing)
                 TextField("", text: $archivePath)
                     .textFieldStyle(.roundedBorder)
                 Button(L("Browse…")) { chooseArchive() }
             }
 
-            HStack(spacing: 8) {
-                Text(L("Format:")).frame(width: 96, alignment: .trailing)
-                Picker("", selection: $format) {
-                    ForEach(ArchiveFormat.allCases) { format in
-                        Text(format.title).tag(format)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 150)
-                .onChange(of: format) { _ in
-                    method = ""
-                    dictionary = ""
-                    updateExtension()
-                }
-
-                Text(L("Level:")).frame(width: 48, alignment: .trailing)
-                Picker("", selection: $level) {
-                    ForEach(CompressionLevel.allCases) { level in
-                        Text(level.title).tag(level)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 110)
-            }
-
-            if !format.compressionMethods.isEmpty {
-                HStack(spacing: 8) {
-                    Text(L("Compression method:")).frame(width: 96, alignment: .trailing)
-                    Picker("", selection: $method) {
-                        Text(L("Automatic")).tag("")
-                        ForEach(format.compressionMethods, id: \.self) { name in
-                            Text(name).tag(name)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(width: 150)
-
-                    Text(L("Dictionary size:")).frame(width: 110, alignment: .trailing)
-                    Picker("", selection: $dictionary) {
-                        Text(L("Automatic")).tag("")
-                        ForEach(format.dictionarySizes, id: \.self) { size in
-                            Text(size).tag(size)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(width: 110)
-                    .disabled(!dictionaryApplies)
-                }
-            }
-
-            HStack(spacing: 8) {
-                Text(L("Update mode:")).frame(width: 96, alignment: .trailing)
-                Picker("", selection: $updateMode) {
-                    ForEach(UpdateMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 190)
-
-                Text(L("Threads:")).frame(width: 60, alignment: .trailing)
-                Picker("", selection: $threads) {
-                    ForEach(ThreadOption.allCases) { option in
-                        Text(option.title).tag(option)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 80)
-            }
-
-            HStack(spacing: 8) {
-                Text(L("Path mode:")).frame(width: 96, alignment: .trailing)
-                Picker("", selection: $pathMode) {
-                    ForEach(PathMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
-                    }
-                }
-                .labelsHidden()
-                .frame(width: 190)
-            }
-
-            if format.supportsSolid {
-                Toggle(L("Solid compression (better ratio, slightly slower for single files)"), isOn: $solid)
-            }
-
-            Toggle(L("Delete files after compression"), isOn: $deleteAfterCompression)
-
-            if format.supportsMultiVolume {
-                HStack(spacing: 8) {
-                    Text(L("Split to volumes:")).frame(width: 96, alignment: .trailing)
-                    TextField(L("e.g. 100m, leave empty for a single file"), text: $volume)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 240)
-                }
-            }
-
-            if format.supportsPassword {
-                VStack(alignment: .leading, spacing: 6) {
-                    Toggle(L("Use password"), isOn: $usePassword)
-                    if usePassword {
-                        HStack(spacing: 8) {
-                            if showPassword {
-                                TextField(L("Password"), text: $password)
-                                    .textFieldStyle(.roundedBorder)
-                            } else {
-                                SecureField(L("Password"), text: $password)
-                                    .textFieldStyle(.roundedBorder)
-                            }
-                            Toggle(L("Show password"), isOn: $showPassword)
-                        }
-                        .frame(width: 320)
-                        if format.supportsEncryptNames {
-                            Toggle(L("Encrypt file names"), isOn: $encryptNames)
-                        }
-                    }
-                }
+            HStack(alignment: .top, spacing: 32) {
+                leftColumn
+                rightColumn
             }
 
             GroupBox {
@@ -325,9 +277,15 @@ struct AddSheet: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(height: 70)
+                    .frame(height: 60)
                 }
                 .padding(4)
+            }
+
+            if let errorMessage {
+                Text(errorMessage)
+                    .font(.callout)
+                    .foregroundStyle(.red)
             }
 
             HStack {
@@ -339,14 +297,186 @@ struct AddSheet: View {
             }
         }
         .padding(20)
-        .frame(width: 560)
+        .frame(width: 820)
         .onAppear {
             archivePath = model.suggestedArchiveURL?.path ?? ""
             if let ext = model.suggestedArchiveURL?.pathExtension,
                let detected = ArchiveTypes.format(forExtension: ext) {
                 format = detected
             }
+            if let first = format.encryptionMethods.first {
+                encryptionMethod = first
+            }
         }
+    }
+
+    // MARK: Columns
+
+    private var leftColumn: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            FormRow(label: L("Archive format:"), width: labelWidth) {
+                Picker("", selection: $format) {
+                    ForEach(ArchiveFormat.allCases) { format in
+                        Text(format.title).tag(format)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: controlWidth)
+                .onChange(of: format) { _ in formatChanged() }
+            }
+
+            FormRow(label: L("Compression level:"), width: labelWidth) {
+                Picker("", selection: $level) {
+                    ForEach(CompressionLevel.allCases) { level in
+                        Text(level.title).tag(level)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: controlWidth)
+            }
+
+            if !format.compressionMethods.isEmpty {
+                FormRow(label: L("Compression method:"), width: labelWidth) {
+                    Picker("", selection: $method) {
+                        Text(L("Automatic")).tag("")
+                        ForEach(format.compressionMethods, id: \.self) { name in
+                            Text(name).tag(name)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: controlWidth)
+                    .onChange(of: method) { _ in wordSize = "" }
+                }
+
+                FormRow(label: L("Dictionary size:"), width: labelWidth) {
+                    Picker("", selection: $dictionary) {
+                        Text(L("Automatic")).tag("")
+                        ForEach(format.dictionarySizes, id: \.self) { size in
+                            Text(size).tag(size)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: controlWidth)
+                    .disabled(!dictionaryApplies)
+                }
+
+                if !wordSizeChoices.isEmpty {
+                    FormRow(label: L("Word size:"), width: labelWidth) {
+                        Picker("", selection: $wordSize) {
+                            Text(L("Automatic")).tag("")
+                            ForEach(wordSizeChoices, id: \.self) { size in
+                                Text(size).tag(size)
+                            }
+                        }
+                        .labelsHidden()
+                        .frame(width: controlWidth)
+                    }
+                }
+            }
+
+            if format.supportsSolid {
+                FormRow(label: L("Solid Block size:"), width: labelWidth) {
+                    Picker("", selection: $solidBlock) {
+                        ForEach(SolidBlockOption.allCases) { option in
+                            Text(option.title).tag(option)
+                        }
+                    }
+                    .labelsHidden()
+                    .frame(width: controlWidth)
+                }
+            }
+
+            FormRow(label: L("Number of CPU threads:"), width: labelWidth) {
+                Picker("", selection: $threads) {
+                    ForEach(ThreadOption.allCases) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: controlWidth)
+            }
+
+            if format.supportsMultiVolume {
+                FormRow(label: L("Split to volumes:"), width: labelWidth) {
+                    TextField(L("e.g. 100m"), text: $volume)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: controlWidth)
+                }
+            }
+
+            FormRow(label: L("Parameters:"), width: labelWidth) {
+                TextField("", text: $parameters)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: controlWidth)
+                    .help(L("Extra switches passed to the engine, separated by spaces."))
+            }
+        }
+        .frame(width: labelWidth + 8 + controlWidth, alignment: .leading)
+    }
+
+    private var rightColumn: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            FormRow(label: L("Update mode:"), width: labelWidth) {
+                Picker("", selection: $updateMode) {
+                    ForEach(UpdateMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: controlWidth)
+            }
+
+            FormRow(label: L("Path mode:"), width: labelWidth) {
+                Picker("", selection: $pathMode) {
+                    ForEach(PathMode.allCases) { mode in
+                        Text(mode.title).tag(mode)
+                    }
+                }
+                .labelsHidden()
+                .frame(width: controlWidth)
+            }
+
+            GroupBox {
+                VStack(alignment: .leading, spacing: 6) {
+                    Toggle(L("Compress shared files"), isOn: $compressSharedFiles)
+                    Toggle(L("Delete files after compression"), isOn: $deleteAfterCompression)
+                }
+                .padding(6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } label: {
+                Text(L("Options"))
+            }
+
+            if format.supportsPassword {
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 6) {
+                        FormRow(label: L("Enter password:"), width: 116) {
+                            PasswordField(placeholder: "", text: $password, revealed: showPassword, width: 156)
+                        }
+                        FormRow(label: L("Reenter password:"), width: 116) {
+                            PasswordField(placeholder: "", text: $password2, revealed: showPassword, width: 156)
+                        }
+                        Toggle(L("Show Password"), isOn: $showPassword)
+                        FormRow(label: L("Encryption method:"), width: 116) {
+                            Picker("", selection: $encryptionMethod) {
+                                ForEach(format.encryptionMethods) { method in
+                                    Text(method.title).tag(method)
+                                }
+                            }
+                            .labelsHidden()
+                            .frame(width: 156)
+                        }
+                        Toggle(L("Encrypt file names"), isOn: $encryptNames)
+                            .disabled(!format.supportsEncryptNames)
+                    }
+                    .padding(6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } label: {
+                    Text(L("Encryption"))
+                }
+            }
+        }
+        .frame(width: labelWidth + 8 + controlWidth, alignment: .leading)
     }
 
     /// The `-md` switch only applies to LZMA/LZMA2 (7z) or LZMA (zip).
@@ -355,6 +485,25 @@ struct AddSheet: View {
         case .zip: return method == "LZMA"
         case .sevenZip: return method.isEmpty || method == "LZMA" || method == "LZMA2"
         default: return false
+        }
+    }
+
+    /// Word-size values for the currently selected method.
+    private var wordSizeChoices: [String] {
+        var options = CreateOptions(format: format)
+        options.method = method.isEmpty ? nil : method
+        return options.wordSizeChoices
+    }
+
+    private func formatChanged() {
+        method = ""
+        dictionary = ""
+        wordSize = ""
+        solidBlock = .auto
+        updateExtension()
+        if !format.encryptionMethods.contains(encryptionMethod),
+           let first = format.encryptionMethods.first {
+            encryptionMethod = first
         }
     }
 
@@ -375,19 +524,28 @@ struct AddSheet: View {
     }
 
     private func submit() {
+        if !password.isEmpty, password != password2 {
+            errorMessage = L("Passwords do not match")
+            return
+        }
+        errorMessage = nil
         let options = CreateOptions(
             format: format,
             level: level,
-            password: usePassword && !password.isEmpty ? password : nil,
+            password: password.isEmpty ? nil : password,
             encryptFileNames: encryptNames,
-            solid: solid,
+            solidBlock: solidBlock,
             volumeSize: volume.isEmpty ? nil : volume,
             method: method.isEmpty ? nil : method,
             dictionary: dictionary.isEmpty ? nil : dictionary,
+            wordSize: wordSize.isEmpty ? nil : wordSize,
+            encryptionMethod: format.supportsPassword ? encryptionMethod : nil,
             threads: threads,
             updateMode: updateMode,
             pathMode: pathMode,
-            deleteAfterCompression: deleteAfterCompression
+            compressSharedFiles: compressSharedFiles,
+            deleteAfterCompression: deleteAfterCompression,
+            parameters: parameters.isEmpty ? nil : parameters
         )
         let target = URL(fileURLWithPath: archivePath)
         dismiss()

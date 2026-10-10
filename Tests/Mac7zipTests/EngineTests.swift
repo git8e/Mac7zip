@@ -61,7 +61,7 @@ struct EngineTests {
                 destination: out,
                 password: nil,
                 overwrite: .overwrite,
-                keepDirectoryStructure: true
+                pathMode: .fullPaths
             ),
             totalHint: nil,
             progress: nil
@@ -192,7 +192,7 @@ struct EngineTests {
                 destination: out,
                 password: nil,
                 overwrite: .overwrite,
-                keepDirectoryStructure: true,
+                pathMode: .fullPaths,
                 eliminateRoot: true
             ),
             totalHint: nil,

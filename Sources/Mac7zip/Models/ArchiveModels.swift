@@ -177,6 +177,33 @@ enum OverwriteMode: String, CaseIterable, Identifiable {
     }
 }
 
+/// The Windows Extract dialog's "Path mode" combo
+/// (`NExtract::NPathMode`).
+enum ExtractPathMode: String, CaseIterable, Identifiable {
+    case fullPaths
+    case noPaths
+    case absolutePaths
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .fullPaths: return L("Full paths")
+        case .noPaths: return L("No paths")
+        case .absolutePaths: return L("Absolute paths")
+        }
+    }
+
+    /// `nil` means the engine default (full paths).
+    var switchValue: String? {
+        switch self {
+        case .fullPaths: return nil
+        case .noPaths: return "-e"
+        case .absolutePaths: return "-spf"
+        }
+    }
+}
+
 enum ArchiveFormat: String, CaseIterable, Identifiable {
     case sevenZip = "7z"
     case zip
@@ -226,9 +253,20 @@ enum ArchiveFormat: String, CaseIterable, Identifiable {
 
     var supportsPassword: Bool { self == .sevenZip || self == .zip }
     var supportsEncryptNames: Bool { self == .sevenZip }
-    var supportsSolid: Bool { self == .sevenZip || self == .tar }
+    /// Formats whose encoder supports a solid block size (`-ms`), matching the
+    /// `kFF_Solid` flag in the Windows `CompressDialog.cpp`.
+    var supportsSolid: Bool { self == .sevenZip || self == .xz }
     var supportsMultiVolume: Bool { self == .sevenZip || self == .zip }
     var allowsMultipleSources: Bool { !(self == .gzip || self == .bzip2 || self == .xz) }
+
+    /// Encryption methods offered in the Add dialog for this format.
+    var encryptionMethods: [EncryptionMethod] {
+        switch self {
+        case .sevenZip: return [.aes256]
+        case .zip: return [.aes256, .zipCrypto]
+        default: return []
+        }
+    }
 }
 
 enum CompressionLevel: Int, CaseIterable, Identifiable {
@@ -348,19 +386,86 @@ enum ThreadOption: String, CaseIterable, Identifiable {
     }
 }
 
+/// "Solid Block size" combo in the Add dialog (`-ms`).
+enum SolidBlockOption: String, CaseIterable, Identifiable {
+    case auto
+    case nonSolid
+    case solid
+    case mb4
+    case mb16
+    case mb64
+    case mb256
+    case gb1
+    case gb4
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .auto: return L("Auto")
+        case .nonSolid: return L("Non-solid")
+        case .solid: return L("Solid")
+        case .mb4: return "4 MB"
+        case .mb16: return "16 MB"
+        case .mb64: return "64 MB"
+        case .mb256: return "256 MB"
+        case .gb1: return "1 GB"
+        case .gb4: return "4 GB"
+        }
+    }
+
+    /// The `-ms` value; `nil` means "let the engine decide".
+    var switchValue: String? {
+        switch self {
+        case .auto: return nil
+        case .nonSolid: return "-ms=off"
+        case .solid: return "-ms=on"
+        case .mb4: return "-ms=4m"
+        case .mb16: return "-ms=16m"
+        case .mb64: return "-ms=64m"
+        case .mb256: return "-ms=256m"
+        case .gb1: return "-ms=1g"
+        case .gb4: return "-ms=4g"
+        }
+    }
+}
+
+/// "Encryption method" combo in the Add dialog's Encryption group (`-mem`).
+/// The raw value is the engine's switch value (`AES256`, `ZipCrypto`).
+enum EncryptionMethod: String, CaseIterable, Identifiable {
+    case aes256 = "AES256"
+    case zipCrypto = "ZipCrypto"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .aes256: return "AES-256"
+        case .zipCrypto: return "ZipCrypto"
+        }
+    }
+
+    var switchValue: String { "-mem=" + rawValue }
+}
+
 struct CreateOptions {
     var format: ArchiveFormat = .sevenZip
     var level: CompressionLevel = .normal
     var password: String?
     var encryptFileNames: Bool = false
-    var solid: Bool = true
+    var solidBlock: SolidBlockOption = .auto
     var volumeSize: String?
     var method: String?
     var dictionary: String?
+    var wordSize: String?
+    var encryptionMethod: EncryptionMethod?
     var threads: ThreadOption = .auto
     var updateMode: UpdateMode = .addAndReplace
     var pathMode: PathMode = .relative
+    var compressSharedFiles: Bool = false
     var deleteAfterCompression: Bool = false
+    /// Free-form switches typed into the dialog's "Parameters" field.
+    var parameters: String?
 
     /// Extra switches derived from the advanced options, in a stable order so
     /// the behaviour is easy to test and matches the Windows dialog.
@@ -372,8 +477,17 @@ struct CreateOptions {
         if let dictionary, !dictionary.isEmpty, acceptsDictionary {
             arguments.append("-md=" + dictionary)
         }
+        if let wordSize, !wordSize.isEmpty, let switchValue = wordSizeSwitch(wordSize) {
+            arguments.append(switchValue)
+        }
+        if format.supportsSolid, let solid = solidBlock.switchValue {
+            arguments.append(solid)
+        }
         if let threads = threads.switchValue {
             arguments.append(threads)
+        }
+        if compressSharedFiles {
+            arguments.append("-ssw")
         }
         if let update = updateMode.switchValue {
             arguments.append(update)
@@ -384,7 +498,45 @@ struct CreateOptions {
         if deleteAfterCompression {
             arguments.append("-sdel")
         }
+        if let encryption = encryptionSwitch {
+            arguments.append(encryption)
+        }
+        if let parameters, !parameters.isEmpty {
+            arguments.append(contentsOf: parameters
+                .split(whereSeparator: { $0 == " " || $0 == "\t" || $0 == "\n" })
+                .map(String.init))
+        }
         return arguments
+    }
+
+    /// The method the engine will actually use, taking the per-format default
+    /// into account (so the word-size list matches what will be encoded).
+    var effectiveMethod: String {
+        if let method, !method.isEmpty { return method.lowercased() }
+        switch format {
+        case .sevenZip: return "lzma2"
+        case .zip: return "deflate"
+        default: return ""
+        }
+    }
+
+    /// Word-size values offered for the current method (fast bytes for
+    /// LZMA/Deflate, order for PPMd), mirroring `SetOrder2()`.
+    var wordSizeChoices: [String] {
+        switch effectiveMethod {
+        case "lzma", "lzma2":
+            return ["8", "12", "16", "24", "32", "48", "64", "96", "128", "192", "256", "273"]
+        case "deflate":
+            return ["8", "12", "16", "24", "32", "48", "64", "96", "128", "192", "256", "258"]
+        case "deflate64":
+            return ["8", "12", "16", "24", "32", "48", "64", "96", "128", "192", "256", "257"]
+        case "ppmd":
+            return format == .zip
+                ? (2...16).map(String.init)
+                : ["2", "3", "4", "5", "6", "7", "8", "10", "12", "14", "16", "20", "24", "28", "32"]
+        default:
+            return []
+        }
     }
 
     /// The dictionary-size switch (`-md`) only applies to LZMA/LZMA2.
@@ -399,6 +551,27 @@ struct CreateOptions {
         default:
             return false
         }
+    }
+
+    /// `-mfb` for LZMA/Deflate fast bytes, `-mo` for the PPMd order.
+    private func wordSizeSwitch(_ wordSize: String) -> String? {
+        switch effectiveMethod {
+        case "lzma", "lzma2", "deflate", "deflate64":
+            return "-mfb=" + wordSize
+        case "ppmd":
+            return "-mo=" + wordSize
+        default:
+            return nil
+        }
+    }
+
+    /// `-mem` for encrypted archives (`nil` when no password is set).
+    private var encryptionSwitch: String? {
+        guard let password, !password.isEmpty else { return nil }
+        if let encryptionMethod { return encryptionMethod.switchValue }
+        // Keep the previous behaviour: a zip password defaults to AES-256 (the
+        // engine already defaults 7z to AES-256).
+        return format == .zip ? EncryptionMethod.aes256.switchValue : nil
     }
 }
 

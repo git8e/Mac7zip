@@ -373,7 +373,7 @@ final class AppModel: ObservableObject {
                         destination: directory,
                         password: password,
                         overwrite: .overwrite,
-                        keepDirectoryStructure: true
+                        pathMode: .fullPaths
                     ),
                     totalHint: 1,
                     progress: nil
@@ -521,7 +521,7 @@ final class AppModel: ObservableObject {
                         destination: destination,
                         password: nil,
                         overwrite: .overwrite,
-                        keepDirectoryStructure: true
+                        pathMode: .fullPaths
                     ),
                     totalHint: total,
                     progress: handler
@@ -614,7 +614,7 @@ final class AppModel: ObservableObject {
         showExtractSheet = true
     }
 
-    func performExtract(destination: URL, password: String?, overwrite: OverwriteMode, keepPaths: Bool, eliminateRoot: Bool = false) {
+    func performExtract(destination: URL, password: String?, overwrite: OverwriteMode, pathMode: ExtractPathMode, eliminateRoot: Bool = false) {
         guard let engine, let info = archiveInfo else { return }
         let items = pendingExtractItems
         let total = fileCount(under: items ?? [])
@@ -629,7 +629,7 @@ final class AppModel: ObservableObject {
                         destination: destination,
                         password: password,
                         overwrite: overwrite,
-                        keepDirectoryStructure: keepPaths,
+                        pathMode: pathMode,
                         eliminateRoot: eliminateRoot
                     ),
                     totalHint: total,
@@ -642,7 +642,7 @@ final class AppModel: ObservableObject {
             } catch SevenZipError.passwordRequired {
                 self.endBusy()
                 self.passwordPrompt = PasswordPrompt(title: L("Enter Password"), message: L("The archive is encrypted. Enter the password.")) { [weak self] pw in
-                    self?.performExtract(destination: destination, password: pw, overwrite: overwrite, keepPaths: keepPaths, eliminateRoot: eliminateRoot)
+                    self?.performExtract(destination: destination, password: pw, overwrite: overwrite, pathMode: pathMode, eliminateRoot: eliminateRoot)
                 }
             } catch SevenZipError.cancelled {
                 self.endBusy()

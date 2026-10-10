@@ -8,7 +8,7 @@ struct ExtractOptions {
     var destination: URL
     var password: String?
     var overwrite: OverwriteMode = .overwrite
-    var keepDirectoryStructure: Bool = true
+    var pathMode: ExtractPathMode = .fullPaths
     /// "Eliminate duplication of root folder" (`-spe`).
     var eliminateRoot: Bool = false
 }
@@ -90,7 +90,7 @@ final class SevenZipEngine {
         progress: ProgressHandler?
     ) async throws {
         var arguments = ["x", "-y", "-sccUTF-8", "-bb1", "-bsp0", options.overwrite.switchValue]
-        if !options.keepDirectoryStructure { arguments.append("-e") }
+        if let pathMode = options.pathMode.switchValue { arguments.append(pathMode) }
         arguments.append(contentsOf: options.extraArguments)
         arguments.append("-o" + options.destination.path)
         if let password = options.password, !password.isEmpty { arguments.append("-p" + password) }
@@ -126,14 +126,8 @@ final class SevenZipEngine {
         var arguments = ["a", "-y", "-sccUTF-8", "-bb1", "-bsp0", options.format.typeSwitch, options.level.switchValue]
         arguments.append(contentsOf: options.extraArguments)
 
-        if options.format.supportsSolid, !options.solid {
-            arguments.append("-ms=off")
-        }
         if let password = options.password, !password.isEmpty {
             arguments.append("-p" + password)
-            if options.format == .zip {
-                arguments.append("-mem=AES256")
-            }
             if options.encryptFileNames && options.format.supportsEncryptNames {
                 arguments.append("-mhe=on")
             }

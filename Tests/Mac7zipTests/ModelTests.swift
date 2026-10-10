@@ -246,4 +246,48 @@ struct OptionArgumentTests {
         options.eliminateRoot = true
         #expect(options.extraArguments == ["-spe"])
     }
+
+    @Test("Word size maps to fast bytes for LZMA and order for PPMd")
+    func wordSizeSwitches() {
+        var options = CreateOptions()
+        options.method = "LZMA2"
+        options.wordSize = "64"
+        #expect(options.extraArguments == ["-m0=LZMA2", "-mfb=64"])
+        options.method = "PPMd"
+        #expect(options.extraArguments == ["-m0=PPMd", "-mo=64"])
+    }
+
+    @Test("Solid block size maps to -ms")
+    func solidBlockSwitches() {
+        var options = CreateOptions()
+        options.solidBlock = .nonSolid
+        #expect(options.extraArguments == ["-ms=off"])
+        options.solidBlock = .mb64
+        #expect(options.extraArguments == ["-ms=64m"])
+    }
+
+    @Test("Zip password defaults to AES-256 and honours an explicit method")
+    func zipEncryptionMethods() {
+        var options = CreateOptions(format: .zip)
+        options.password = "secret"
+        #expect(options.extraArguments == ["-mem=AES256"])
+        options.encryptionMethod = .zipCrypto
+        #expect(options.extraArguments == ["-mem=ZipCrypto"])
+    }
+
+    @Test("Shared files flag and free-form parameters are appended last")
+    func sharedAndParameters() {
+        var options = CreateOptions()
+        options.compressSharedFiles = true
+        options.deleteAfterCompression = true
+        options.parameters = "-mtc=off  -ssp"
+        #expect(options.extraArguments == ["-ssw", "-sdel", "-mtc=off", "-ssp"])
+    }
+
+    @Test("Extract path modes map to -e and -spf")
+    func extractPathModes() {
+        #expect(ExtractPathMode.fullPaths.switchValue == nil)
+        #expect(ExtractPathMode.noPaths.switchValue == "-e")
+        #expect(ExtractPathMode.absolutePaths.switchValue == "-spf")
+    }
 }

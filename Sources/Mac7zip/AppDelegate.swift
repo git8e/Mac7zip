@@ -88,6 +88,50 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             exit(0)
         }
 
+        if let index = args.firstIndex(of: "--render-sheet"), args.count > index + 2 {
+            let which = args[index + 1]
+            let path = args[index + 2]
+            let model = AppModel.shared
+            model.addSources = [
+                URL(fileURLWithPath: "/Users/mini/Desktop/photos/IMG_2043.jpg"),
+                URL(fileURLWithPath: "/Users/mini/Desktop/photos/IMG_2044.jpg"),
+                URL(fileURLWithPath: "/Users/mini/Desktop/photos")
+            ]
+            model.suggestedArchiveURL = URL(fileURLWithPath: "/Users/mini/Desktop/photos.7z")
+            model.suggestedExtractDestination = URL(fileURLWithPath: "/Users/mini/Desktop/photos")
+            model.pendingExtractItems = nil
+
+            let sheet: AnyView = which == "extract" ? AnyView(ExtractSheet()) : AnyView(AddSheet())
+            let root = AnyView(
+                sheet
+                    .environmentObject(model)
+                    .background(Color(nsColor: .windowBackgroundColor))
+            )
+
+            let host = NSHostingView(rootView: root)
+            host.frame = CGRect(origin: .zero, size: host.fittingSize)
+            let window = NSWindow(
+                contentRect: host.frame,
+                styleMask: [.titled],
+                backing: .buffered,
+                defer: false
+            )
+            window.appearance = NSAppearance(named: .aqua)
+            window.contentView = host
+            window.layoutIfNeeded()
+            host.layoutSubtreeIfNeeded()
+            if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+                host.cacheDisplay(in: host.bounds, to: rep)
+                if let png = rep.representation(using: .png, properties: [:]) {
+                    try? png.write(to: URL(fileURLWithPath: path))
+                    print("wrote \(path) \(Int(host.bounds.width))x\(Int(host.bounds.height))")
+                }
+            } else {
+                print("render failed")
+            }
+            exit(0)
+        }
+
         if args.contains("--check-engine") {
             if let url = EngineLocator.engineURL {
                 print("engine=\(url.path)")
